@@ -19,6 +19,8 @@ The classpath must include Notes.jar (local) or NCSO.jar (remote)
 - Notes.jar can be found in the program directory of any Notes/Domino installation. 
 - NCSO.jar can be found in the domino\java directory under the data directory in Domino Designer or the Domino server.
 
+The DIIOP (Domino IIOP) task on the server must be running for remote calls. 
+
 #### Using Pentaho Marketplace ##
 
 1. Find the plugin in the [Pentaho Marketplace](http://www.pentaho.com/marketplace) and click Install

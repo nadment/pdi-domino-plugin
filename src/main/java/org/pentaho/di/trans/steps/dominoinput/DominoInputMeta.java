@@ -330,27 +330,26 @@ public class DominoInputMeta extends BaseStepMeta implements StepMetaInterface {
 	public String getXML() {
 		StringBuilder xml = new StringBuilder();
 
-		xml.append("    ").append(XMLHandler.addTagValue(TAG_CONNECTION, database == null ? "" : database.getName()));
-		xml.append("    ").append(XMLHandler.addTagValue(TAG_MODE, mode.name()));
-		xml.append("    ").append(XMLHandler.addTagValue(TAG_VIEW, view));
-		xml.append("    ").append(XMLHandler.addTagValue(TAG_SEARCH, search));
-		xml.append("    <fields>").append(Const.CR);
+		xml.append(XMLHandler.addTagValue(TAG_CONNECTION, database == null ? "" : database.getName()));
+		xml.append(XMLHandler.addTagValue(TAG_MODE, mode.name()));
+		xml.append(XMLHandler.addTagValue(TAG_VIEW, view));
+		xml.append(XMLHandler.addTagValue(TAG_SEARCH, search));
+		xml.append("<fields>");
 		for (DominoField field : this.fields) {
-			xml.append("      <field>").append(Const.CR);
-			xml.append("        ").append(XMLHandler.addTagValue(TAG_FIELD_NAME, field.getName()));
-			xml.append("        ").append(XMLHandler.addTagValue(TAG_FIELD_FORMULA, field.getFormula()));
-			xml.append("        ")
-					.append(XMLHandler.addTagValue(TAG_FIELD_TYPE, ValueMetaFactory.getValueMetaName(field.getType())));
-			xml.append("        ").append(XMLHandler.addTagValue(TAG_FIELD_FORMAT, field.getFormat()));
-			xml.append("        ").append(XMLHandler.addTagValue(TAG_FIELD_CURRENCY_SYMBOL, field.getCurrencySymbol()));
-			xml.append("        ").append(XMLHandler.addTagValue(TAG_FIELD_GROUP_SYMBOL, field.getGroupSymbol()));
-			xml.append("        ").append(XMLHandler.addTagValue(TAG_FIELD_DECIMAL_SYMBOL, field.getDecimalSymbol()));
-			xml.append("        ").append(XMLHandler.addTagValue(TAG_FIELD_LENGTH, field.getLength()));
-			xml.append("        ").append(XMLHandler.addTagValue(TAG_FIELD_PRECISION, field.getPrecision()));
-			xml.append("        ").append(XMLHandler.addTagValue(TAG_FIELD_TRIM_TYPE, field.getTrimTypeCode()));
-			xml.append("      </field>").append(Const.CR);
+			xml.append("<field>");
+			xml.append(XMLHandler.addTagValue(TAG_FIELD_NAME, field.getName()));
+			xml.append(XMLHandler.addTagValue(TAG_FIELD_FORMULA, field.getFormula()));
+			xml.append(XMLHandler.addTagValue(TAG_FIELD_TYPE, ValueMetaFactory.getValueMetaName(field.getType())));
+			xml.append(XMLHandler.addTagValue(TAG_FIELD_FORMAT, field.getFormat()));
+			xml.append(XMLHandler.addTagValue(TAG_FIELD_CURRENCY_SYMBOL, field.getCurrencySymbol()));
+			xml.append(XMLHandler.addTagValue(TAG_FIELD_GROUP_SYMBOL, field.getGroupSymbol()));
+			xml.append(XMLHandler.addTagValue(TAG_FIELD_DECIMAL_SYMBOL, field.getDecimalSymbol()));
+			xml.append(XMLHandler.addTagValue(TAG_FIELD_LENGTH, field.getLength()));
+			xml.append(XMLHandler.addTagValue(TAG_FIELD_PRECISION, field.getPrecision()));
+			xml.append(XMLHandler.addTagValue(TAG_FIELD_TRIM_TYPE, field.getTrimTypeCode()));
+			xml.append("</field>");
 		}
-		xml.append("    </fields>").append(Const.CR);
+		xml.append("</fields>");
 
 		return xml.toString();
 	}

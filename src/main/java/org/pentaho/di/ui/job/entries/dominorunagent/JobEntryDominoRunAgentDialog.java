@@ -35,9 +35,9 @@ public class JobEntryDominoRunAgentDialog extends AbstractJobEntryDialog<JobEntr
 
 	private static Class<?> PKG = JobEntryDominoRunAgent.class;
 
-	private CCombo wConnection;
+	private CCombo cmbConnection;
 
-	private TextVarButton wAgentName;
+	private TextVarButton txtAgentName;
 
 	
 
@@ -65,11 +65,11 @@ public class JobEntryDominoRunAgentDialog extends AbstractJobEntryDialog<JobEntr
 		};
 
 		// Connection line
-		wConnection = addConnectionLine(parent, null, props.getMiddlePct(), Const.MARGIN);
+		cmbConnection = addConnectionLine(parent, null, props.getMiddlePct(), Const.MARGIN);
 		if (this.getJobEntry().getDatabase() == null && jobMeta.nrDatabases() == 1) {
-			wConnection.select(0);
+			cmbConnection.select(0);
 		}
-		wConnection.addModifyListener(lsMod);
+		cmbConnection.addModifyListener(lsMod);
 
 		List<String> items = new ArrayList<String>();
 		for (DatabaseMeta database : jobMeta.getDatabases()) {
@@ -77,19 +77,19 @@ public class JobEntryDominoRunAgentDialog extends AbstractJobEntryDialog<JobEntr
 				items.add(database.getName());
 			}
 		}
-		wConnection.setItems(items.toArray(new String[items.size()]));
+		cmbConnection.setItems(items.toArray(new String[items.size()]));
 		if (this.getJobEntry().getDatabase() == null && jobMeta.nrDatabases() == 1) {
-			wConnection.select(0);
+			cmbConnection.select(0);
 		}
 
 		// wConnection.addModifyListener(lsConnectionMod);
 		// wConnection.addSelectionListener(lsSelection);
 		// wConnection.addFocusListener(lsConnectionFocus);
-		wConnection.addModifyListener(new ModifyListener() {
+		cmbConnection.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
 				// We have new content: change database connection:
-				getJobEntry().setDatabase(jobMeta.findDatabase(wConnection.getText()));
+				getJobEntry().setDatabase(jobMeta.findDatabase(cmbConnection.getText()));
 				getJobEntry().setChanged();
 			}
 		});
@@ -106,14 +106,14 @@ public class JobEntryDominoRunAgentDialog extends AbstractJobEntryDialog<JobEntr
 		wlAgentName.setText(BaseMessages.getString(PKG, "JobEntryDominoRunAgentDialog.Agent.Label"));
 		wlAgentName.setToolTipText(BaseMessages.getString(PKG, "JobEntryDominoRunAgentDialog.Agent.Tooltip"));
 		wlAgentName.setLayoutData(
-				new FormDataBuilder().top(wConnection).right(props.getMiddlePct(), -Const.MARGIN).result());
+				new FormDataBuilder().top(cmbConnection).right(props.getMiddlePct(), -Const.MARGIN).result());
 		props.setLook(wlAgentName);
 
-		wAgentName = new TextVarButton(jobMeta, parent, SWT.SINGLE | SWT.LEFT | SWT.BORDER, null, null, lsButton);
-		wAgentName.setLayoutData(
-				new FormDataBuilder().top(wConnection).left(props.getMiddlePct(), 0).right(100, 0).result());
-		wAgentName.addModifyListener(lsMod);
-		props.setLook(wAgentName);
+		txtAgentName = new TextVarButton(jobMeta, parent, SWT.SINGLE | SWT.LEFT | SWT.BORDER, null, null, lsButton);
+		txtAgentName.setLayoutData(
+				new FormDataBuilder().top(cmbConnection).left(props.getMiddlePct(), 0).right(100, 0).result());
+		txtAgentName.addModifyListener(lsMod);
+		props.setLook(txtAgentName);
 
 		return parent;
 	}
@@ -138,7 +138,7 @@ public class JobEntryDominoRunAgentDialog extends AbstractJobEntryDialog<JobEntr
 
 			if (result != null) {
 				this.getJobEntry().setChanged();
-				wAgentName.setText(result);
+				txtAgentName.setText(result);
 			}
 		} catch (Exception e) {
 			new ErrorDialog(shell,
@@ -152,20 +152,20 @@ public class JobEntryDominoRunAgentDialog extends AbstractJobEntryDialog<JobEntr
 	@Override
 	protected void loadMeta(final JobEntryDominoRunAgent jobEntry) {
 
-		wAgentName.setText(Const.NVL(jobEntry.getAgent(), ""));
+		txtAgentName.setText(Const.NVL(jobEntry.getAgent(), ""));
 
 		if (jobEntry.getDatabase() != null) {
-			wConnection.setText(jobEntry.getDatabase().getName());
+			cmbConnection.setText(jobEntry.getDatabase().getName());
 		} else if (jobMeta.nrDatabases() == 1) {
-			wConnection.setText(jobMeta.getDatabase(0).getName());
+			cmbConnection.setText(jobMeta.getDatabase(0).getName());
 		}
 
 	}
 
 	@Override
 	protected void saveMeta(final JobEntryDominoRunAgent jobEntry) {
-		jobEntry.setDatabase(jobMeta.findDatabase(wConnection.getText()));
-		jobEntry.setAgent(wAgentName.getText());
+		jobEntry.setDatabase(jobMeta.findDatabase(cmbConnection.getText()));
+		jobEntry.setAgent(txtAgentName.getText());
 	}
 
 }

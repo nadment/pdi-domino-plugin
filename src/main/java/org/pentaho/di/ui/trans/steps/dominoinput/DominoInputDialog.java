@@ -68,26 +68,22 @@ public class DominoInputDialog extends AbstractStepDialog<DominoInputMeta> {
 
 	// Widget
 
-	private CTabFolder wTabFolder;
-
-	private CTabItem wGeneralTab, wFieldsTab;
-
-	private CCombo wConnection;
+	private CCombo cmbConnection;
 
 	private Composite wStackComposite;
 
 	private StackLayout wStackLayout;
 
-	private Button wViewMode;
+	private Button btnViewMode;
 
-	private Button wSearchMode;
+	private Button btnSearchMode;
 
-	private TableView wFields;
+	private TableView tblFields;
 
-	private ColumnInfo[] columnInfos;
+	private ColumnInfo[] columns;
 
-	private TextVarButton wViewName;
-	private TextVar wSearchFormula;
+	private TextVarButton txtViewName;
+	private TextVar txtSearchFormula;
 
 	/**
 	 * Constructor that saves incoming meta object to a local variable, so it
@@ -155,13 +151,13 @@ public class DominoInputDialog extends AbstractStepDialog<DominoInputMeta> {
 			shell.setCursor(shell.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
 
 			// Get available view columns
-			if (wViewMode.getSelection() == true) {
-				String viewName = transMeta.environmentSubstitute(wViewName.getText());
+			if (btnViewMode.getSelection() == true) {
+				String viewName = transMeta.environmentSubstitute(txtViewName.getText());
 				fields = this.getStepMeta().getAvailableViewColumns(viewName);
 			}
 			// Get available document items
 			else {
-				String searchFormula = transMeta.environmentSubstitute(wSearchFormula.getText());
+				String searchFormula = transMeta.environmentSubstitute(txtSearchFormula.getText());
 				fields = this.getStepMeta().getAvailableDocumentItems(searchFormula);
 			}
 
@@ -192,11 +188,11 @@ public class DominoInputDialog extends AbstractStepDialog<DominoInputMeta> {
 			if (choice == 3 || choice == 255) {
 				return; // Cancel clicked
 			} else if (choice == 2) {
-				wFields.clearAll(false);
+				tblFields.clearAll(false);
 			} else if (choice == 0) {
 				// build list of existing field names 
-				for (int j = 0; j < wFields.nrNonEmpty(); j++) {
-					fieldNames.add(wFields.getNonEmpty(j).getText(1));
+				for (int j = 0; j < tblFields.nrNonEmpty(); j++) {
+					fieldNames.add(tblFields.getNonEmpty(j).getText(1));
 				}
 			}
 
@@ -208,14 +204,14 @@ public class DominoInputDialog extends AbstractStepDialog<DominoInputMeta> {
 						continue;
 				}
 
-				TableItem item = new TableItem(wFields.table, SWT.NONE);
+				TableItem item = new TableItem(tblFields.table, SWT.NONE);
 				item.setText(1, field.getName());
 				item.setText(3, ValueMetaFactory.getValueMetaName(field.getType()));
 			}
 			
-			wFields.removeEmptyRows();
-			wFields.setRowNums();
-			wFields.optWidth(true);
+			tblFields.removeEmptyRows();
+			tblFields.setRowNums();
+			tblFields.optWidth(true);
 		} catch (Exception e) {
 			new ErrorDialog(shell, BaseMessages.getString(PKG, "System.Dialog.GetFieldsFailed.Title"),
 					BaseMessages.getString(PKG, "System.Dialog.GetFieldsFailed.Message"), e);
@@ -227,24 +223,24 @@ public class DominoInputDialog extends AbstractStepDialog<DominoInputMeta> {
 	protected void loadMeta(final DominoInputMeta meta) {
 
 		if (meta.getDatabaseMeta() != null) {
-			wConnection.setText(meta.getDatabaseMeta().getName());
+			cmbConnection.setText(meta.getDatabaseMeta().getName());
 		} else if (transMeta.nrDatabases() == 1) {
-			wConnection.setText(transMeta.getDatabase(0).getName());
+			cmbConnection.setText(transMeta.getDatabase(0).getName());
 		}
 
 		if (meta.getMode() == DominoInputMode.VIEW) {
-			wViewMode.setSelection(true);
+			btnViewMode.setSelection(true);
 		} else {
-			wSearchMode.setSelection(true);
+			btnSearchMode.setSelection(true);
 		}
 
-		wViewName.setText(Const.NVL(meta.getView(), ""));
-		wSearchFormula.setText(Const.NVL(meta.getSearch(), ""));
+		txtViewName.setText(Const.NVL(meta.getView(), ""));
+		txtSearchFormula.setText(Const.NVL(meta.getSearch(), ""));
 
 		DominoField[] fields = meta.getDominoFields();
 		for (int i = 0; i < fields.length; i++) {
 			DominoField field = fields[i];
-			TableItem item = wFields.table.getItem(i);
+			TableItem item = tblFields.table.getItem(i);
 			item.setText(1, Const.NVL(field.getName(), ""));
 			item.setText(2, Const.NVL(field.getFormula(), ""));
 			item.setText(3, ValueMetaBase.getTypeDesc(field.getType()));
@@ -257,9 +253,9 @@ public class DominoInputDialog extends AbstractStepDialog<DominoInputMeta> {
 			item.setText(10, field.getTrimTypeDesc());
 		}
 
-		wFields.removeEmptyRows();
-		wFields.setRowNums();
-		wFields.optWidth(true);
+		tblFields.removeEmptyRows();
+		tblFields.setRowNums();
+		tblFields.optWidth(true);
 
 		this.updateMode(meta.getMode());
 	}
@@ -270,14 +266,14 @@ public class DominoInputDialog extends AbstractStepDialog<DominoInputMeta> {
 		// save step name
 		stepname = wStepname.getText();
 
-		meta.setDatabaseMeta(transMeta.findDatabase(wConnection.getText()));
-		meta.setMode(wViewMode.getSelection() ? DominoInputMode.VIEW : DominoInputMode.SEARCH);
-		meta.setView(wViewName.getText());
-		meta.setSearch(wSearchFormula.getText());
+		meta.setDatabaseMeta(transMeta.findDatabase(cmbConnection.getText()));
+		meta.setMode(btnViewMode.getSelection() ? DominoInputMode.VIEW : DominoInputMode.SEARCH);
+		meta.setView(txtViewName.getText());
+		meta.setSearch(txtSearchFormula.getText());
 
-		DominoField[] fields = new DominoField[wFields.nrNonEmpty()];
+		DominoField[] fields = new DominoField[tblFields.nrNonEmpty()];
 		for (int i = 0; i < fields.length; i++) {
-			TableItem item = wFields.getNonEmpty(i);
+			TableItem item = tblFields.getNonEmpty(i);
 
 			DominoField field = new DominoField();
 			field.setName(item.getText(1));
@@ -294,7 +290,7 @@ public class DominoInputDialog extends AbstractStepDialog<DominoInputMeta> {
 		}
 		meta.setDominoFields(fields);
 
-		if (transMeta.findDatabase(wConnection.getText()) == null) {
+		if (transMeta.findDatabase(cmbConnection.getText()) == null) {
 			MessageBox mb = new MessageBox(shell, SWT.OK | SWT.ICON_ERROR);
 			mb.setMessage(BaseMessages.getString(PKG, "DominoInputDialog.ErrorDialog.DatabaseConnectionMissing"));
 			mb.setText(BaseMessages.getString(PKG, "DominoInputDialog.ErrorDialog.Title"));
@@ -320,18 +316,18 @@ public class DominoInputDialog extends AbstractStepDialog<DominoInputMeta> {
 			}
 		};
 
-		wTabFolder = new CTabFolder(parent, SWT.BORDER);
-		wTabFolder.setLayoutData(new FormDataBuilder().top().fullWidth().bottom().result());
-		props.setLook(wTabFolder, Props.WIDGET_STYLE_TAB);
+		CTabFolder tabFolder = new CTabFolder(parent, SWT.BORDER);
+		tabFolder.setLayoutData(new FormDataBuilder().top().fullWidth().bottom().result());
+		props.setLook(tabFolder, Props.WIDGET_STYLE_TAB);
 
 		// ----------------------------------------------------------------
 		// Connection tab
 		// ----------------------------------------------------------------
 
-		wGeneralTab = new CTabItem(wTabFolder, SWT.NONE);
-		wGeneralTab.setText(BaseMessages.getString(PKG, "DominoInputDialog.General.Tab"));
+		CTabItem tabGeneral = new CTabItem(tabFolder, SWT.NONE);
+		tabGeneral.setText(BaseMessages.getString(PKG, "DominoInputDialog.General.Tab"));
 
-		Composite wGeneralComposite = new Composite(wTabFolder, SWT.NONE);
+		Composite wGeneralComposite = new Composite(tabFolder, SWT.NONE);
 		props.setLook(wGeneralComposite);
 
 		FormLayout generalLayout = new FormLayout();
@@ -339,12 +335,12 @@ public class DominoInputDialog extends AbstractStepDialog<DominoInputMeta> {
 		generalLayout.marginHeight = Const.FORM_MARGIN;
 		wGeneralComposite.setLayout(generalLayout);
 
-		wGeneralTab.setControl(wGeneralComposite);
+		tabGeneral.setControl(wGeneralComposite);
 
 		// ----------------------------------------------------------------
 		// Widget Connection line
 		// ----------------------------------------------------------------
-		wConnection = addConnectionLine(wGeneralComposite, null, middle, Const.MARGIN);
+		cmbConnection = addConnectionLine(wGeneralComposite, null, middle, Const.MARGIN);
 
 		List<String> items = new ArrayList<String>();
 		for (DatabaseMeta dbMeta : transMeta.getDatabases()) {
@@ -352,62 +348,62 @@ public class DominoInputDialog extends AbstractStepDialog<DominoInputMeta> {
 				items.add(dbMeta.getName());
 			}
 		}
-		wConnection.setItems(items.toArray(new String[items.size()]));
+		cmbConnection.setItems(items.toArray(new String[items.size()]));
 		if (this.getStepMeta().getDatabaseMeta() == null && transMeta.nrDatabases() == 1) {
-			wConnection.select(0);
+			cmbConnection.select(0);
 		}
-		wConnection.addFocusListener(lsConnectionFocus);
-		wConnection.addModifyListener(new ModifyListener() {
+		cmbConnection.addFocusListener(lsConnectionFocus);
+		cmbConnection.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
 				// We have new content: change database connection:
-				getStepMeta().setDatabaseMeta(transMeta.findDatabase(wConnection.getText()));
+				getStepMeta().setDatabaseMeta(transMeta.findDatabase(cmbConnection.getText()));
 				getStepMeta().setChanged();
 
 				// Update available fields
 				// updateAvailableFields();
 			}
 		});
-		props.setLook(wConnection);
+		props.setLook(cmbConnection);
 
 		// ----------------------------------------------------------------
 		// Widget mode view or search formula
 		// ----------------------------------------------------------------
 
 		Composite wModeComposite = new Composite(wGeneralComposite, SWT.NONE);
-		wModeComposite.setLayoutData(new FormDataBuilder().top(wConnection, Const.MARGIN)
+		wModeComposite.setLayoutData(new FormDataBuilder().top(cmbConnection, Const.MARGIN)
 				.right(props.getMiddlePct(), -Const.MARGIN).result());
 		wModeComposite.setLayout(new RowLayout());
 		props.setLook(wModeComposite);
 
-		wViewMode = new Button(wModeComposite, SWT.RADIO);
-		wViewMode.setText(BaseMessages.getString(PKG, "DominoInputDialog.View.Label"));
-		wViewMode.setToolTipText(BaseMessages.getString(PKG, "DominoInputDialog.View.Tooltip"));
-		wViewMode.addSelectionListener(lsDef);
-		wViewMode.addListener(SWT.Selection, new Listener() {
+		btnViewMode = new Button(wModeComposite, SWT.RADIO);
+		btnViewMode.setText(BaseMessages.getString(PKG, "DominoInputDialog.View.Label"));
+		btnViewMode.setToolTipText(BaseMessages.getString(PKG, "DominoInputDialog.View.Tooltip"));
+		btnViewMode.addSelectionListener(lsDef);
+		btnViewMode.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event e) {
 				updateMode(DominoInputMode.VIEW);
 				getStepMeta().setChanged();
 			}
 		});
-		props.setLook(wViewMode);
+		props.setLook(btnViewMode);
 
-		wSearchMode = new Button(wModeComposite, SWT.RADIO);
-		wSearchMode.setText(BaseMessages.getString(PKG, "DominoInputDialog.Search.Label"));
-		wSearchMode.setToolTipText(BaseMessages.getString(PKG, "DominoInputDialog.Search.Tooltip"));
-		wSearchMode.addSelectionListener(lsDef);
-		wSearchMode.addListener(SWT.Selection, new Listener() {
+		btnSearchMode = new Button(wModeComposite, SWT.RADIO);
+		btnSearchMode.setText(BaseMessages.getString(PKG, "DominoInputDialog.Search.Label"));
+		btnSearchMode.setToolTipText(BaseMessages.getString(PKG, "DominoInputDialog.Search.Tooltip"));
+		btnSearchMode.addSelectionListener(lsDef);
+		btnSearchMode.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event e) {
 				updateMode(DominoInputMode.SEARCH);
 				getStepMeta().setChanged();
 			}
 		});
-		props.setLook(wSearchMode);
+		props.setLook(btnSearchMode);
 
 		wStackComposite = new Composite(wGeneralComposite, SWT.NONE);
-		wStackComposite.setLayoutData(new FormDataBuilder().top(wConnection, Const.MARGIN).bottom()
+		wStackComposite.setLayoutData(new FormDataBuilder().top(cmbConnection, Const.MARGIN).bottom()
 				.left(props.getMiddlePct(), 0).right(100, 0).result());
 		wStackLayout = new StackLayout();
 		wStackComposite.setLayout(wStackLayout);
@@ -424,28 +420,28 @@ public class DominoInputDialog extends AbstractStepDialog<DominoInputMeta> {
 		};
 
 		// TODO: Set button label 'Browse' with System.Button.Browse
-		wViewName = new TextVarButton(stepMeta.getParentTransMeta(), wStackComposite,
+		txtViewName = new TextVarButton(stepMeta.getParentTransMeta(), wStackComposite,
 				SWT.SINGLE | SWT.LEFT | SWT.BORDER, null, null, lsButton);
-		wViewName.addModifyListener(lsMod);
+		txtViewName.addModifyListener(lsMod);
 
-		props.setLook(wViewName);
+		props.setLook(txtViewName);
 
 		// ----------------------------------------------------------------
 		// Widget search formula
 		// ----------------------------------------------------------------
-		wSearchFormula = new TextVar(stepMeta.getParentTransMeta(), wStackComposite, SWT.SINGLE | SWT.LEFT | SWT.BORDER,
+		txtSearchFormula = new TextVar(stepMeta.getParentTransMeta(), wStackComposite, SWT.SINGLE | SWT.LEFT | SWT.BORDER,
 				null, null);
-		wSearchFormula.addModifyListener(lsMod);
-		props.setLook(wSearchFormula);
+		txtSearchFormula.addModifyListener(lsMod);
+		props.setLook(txtSearchFormula);
 
 		// ----------------------------------------------------------------
 		// View fields tab
 		// ----------------------------------------------------------------
 
-		wFieldsTab = new CTabItem(wTabFolder, SWT.BORDER);
-		wFieldsTab.setText(BaseMessages.getString(PKG, "DominoInputDialog.Fields.Tab"));
+		CTabItem tabFields = new CTabItem(tabFolder, SWT.BORDER);
+		tabFields.setText(BaseMessages.getString(PKG, "DominoInputDialog.Fields.Tab"));
 
-		Composite wFieldsComposite = new Composite(wTabFolder, SWT.NONE);
+		Composite wFieldsComposite = new Composite(tabFolder, SWT.NONE);
 		props.setLook(wFieldsComposite);
 
 		FormLayout fieldsLayout = new FormLayout();
@@ -465,9 +461,7 @@ public class DominoInputDialog extends AbstractStepDialog<DominoInputMeta> {
 			}
 		});
 
-		columnInfos = new ColumnInfo[] {
-				// new ColumnInfo(BaseMessages.getString(PKG,
-				// "System.Column.Name"), ColumnInfo.COLUMN_TYPE_CCOMBO, false),
+		columns = new ColumnInfo[] {
 				new ColumnInfo(BaseMessages.getString(PKG, "System.Column.Name"), ColumnInfo.COLUMN_TYPE_TEXT, false),
 				new ColumnInfo(BaseMessages.getString(PKG, "DominoInputDialog.FieldsTable.Formula.Column"),
 						ColumnInfo.COLUMN_TYPE_TEXT, false),
@@ -486,16 +480,16 @@ public class DominoInputDialog extends AbstractStepDialog<DominoInputMeta> {
 
 		};
 
-		columnInfos[0].setUsingVariables(true);
-		columnInfos[1].setUsingVariables(true);
+		columns[0].setUsingVariables(true);
+		columns[1].setUsingVariables(true);
 
-		wFields = new TableView(transMeta, wFieldsComposite, SWT.FULL_SELECTION | SWT.MULTI, columnInfos,
+		tblFields = new TableView(transMeta, wFieldsComposite, SWT.FULL_SELECTION | SWT.MULTI, columns,
 				this.getStepMeta().getDominoFields().length, lsMod, props);
-		wFields.setLayoutData(new FormDataBuilder().top().left().right(wGet, -Const.MARGIN).bottom().result());
+		tblFields.setLayoutData(new FormDataBuilder().top().left().right(wGet, -Const.MARGIN).bottom().result());
 
-		wFieldsTab.setControl(wFieldsComposite);
+		tabFields.setControl(wFieldsComposite);
 
-		wTabFolder.setSelection(0);
+		tabFolder.setSelection(0);
 
 		return parent;
 	}
@@ -517,7 +511,7 @@ public class DominoInputDialog extends AbstractStepDialog<DominoInputMeta> {
 
 			if (result != null) {
 				getStepMeta().setChanged();
-				wViewName.setText(result);
+				txtViewName.setText(result);
 			}
 		} catch (Exception e) {
 			new ErrorDialog(shell, BaseMessages.getString(PKG, "DominoInputDialog.ViewSelection.DialogTitle"),
@@ -544,12 +538,12 @@ public class DominoInputDialog extends AbstractStepDialog<DominoInputMeta> {
 
 	protected void updateMode(final DominoInputMode mode) {
 		if (mode == DominoInputMode.VIEW) {
-			columnInfos[1].setReadOnly(true);
-			wStackLayout.topControl = wViewName;
+			columns[1].setReadOnly(true);
+			wStackLayout.topControl = txtViewName;
 			wStackComposite.layout();
 		} else {
-			columnInfos[1].setReadOnly(false);
-			wStackLayout.topControl = wSearchFormula;
+			columns[1].setReadOnly(false);
+			wStackLayout.topControl = txtSearchFormula;
 			wStackComposite.layout();
 		}
 	}

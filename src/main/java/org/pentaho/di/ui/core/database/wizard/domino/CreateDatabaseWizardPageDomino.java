@@ -21,15 +21,15 @@ public class CreateDatabaseWizardPageDomino extends WizardPage {
 
 	private static Class<?> PKG = CreateDatabaseWizardPageDomino.class; // for i18n purposes
 
-	private LabelText wServer;
+	private LabelText txtServer;
 
-	private LabelText wDatabase;
+	private LabelText txtDatabase;
 
-	private LabelText wReplicaID;
+	private LabelText txtReplicaID;
 
-	private LabelText wUserName;
+	private LabelText txtUserName;
 
-	private LabelText wPassword;
+	private LabelText txtPassword;
 
 	private PropsUI props;
 
@@ -58,8 +58,7 @@ public class CreateDatabaseWizardPageDomino extends WizardPage {
 		composite.setLayout(compLayout);
 
 		// The ModifyListener used on all controls. It will update the meta
-		// object to
-		// indicate that changes are being made.
+		// object to indicate that changes are being made.
 		ModifyListener lsMod = new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
@@ -68,62 +67,62 @@ public class CreateDatabaseWizardPageDomino extends WizardPage {
 		};
 
 		// Widget Server
-		wServer = new LabelText(composite, BaseMessages.getString(PKG, "CreateDatabaseWizardPageDomino.Server.Label"),
+		txtServer = new LabelText(composite, BaseMessages.getString(PKG, "CreateDatabaseWizardPageDomino.Server.Label"),
 				BaseMessages.getString(PKG, "CreateDatabaseWizardPageDomino.Server.Tooltip"));
-		wServer.setLayoutData(new FormDataBuilder().top().fullWidth().result());
+		txtServer.setLayoutData(new FormDataBuilder().top().fullWidth().result());
 		// wServer.addModifyListener(lsMod);
-		props.setLook(wServer);
+		props.setLook(txtServer);
 
 		// Widget database
-		wDatabase = new LabelText(composite,
+		txtDatabase = new LabelText(composite,
 				BaseMessages.getString(PKG, "CreateDatabaseWizardPageDomino.Database.Label"),
 				BaseMessages.getString(PKG, "CreateDatabaseWizardPageDomino.Database.Tooltip"));
-		wDatabase.setLayoutData(new FormDataBuilder().top(wServer).fullWidth().result());
-		wDatabase.addModifyListener(lsMod);
-		props.setLook(wDatabase);
+		txtDatabase.setLayoutData(new FormDataBuilder().top(txtServer).fullWidth().result());
+		txtDatabase.addModifyListener(lsMod);
+		props.setLook(txtDatabase);
 
 		// Widget replica ID
-		wReplicaID = new LabelText(composite,
+		txtReplicaID = new LabelText(composite,
 				BaseMessages.getString(PKG, "CreateDatabaseWizardPageDomino.ReplicaID.Label"),
 				BaseMessages.getString(PKG, "CreateDatabaseWizardPageDomino.ReplicaID.Tooltip"));
-		wReplicaID.setLayoutData(new FormDataBuilder().top(wDatabase).fullWidth().result());
-		wReplicaID.addModifyListener(lsMod);
-		props.setLook(wReplicaID);
+		txtReplicaID.setLayoutData(new FormDataBuilder().top(txtDatabase).fullWidth().result());
+		txtReplicaID.addModifyListener(lsMod);
+		props.setLook(txtReplicaID);
 
 		// Widget user
-		wUserName = new LabelText(composite, BaseMessages.getString(PKG, "CreateDatabaseWizardPageDomino.User.Label"),
+		txtUserName = new LabelText(composite, BaseMessages.getString(PKG, "CreateDatabaseWizardPageDomino.User.Label"),
 				BaseMessages.getString(PKG, "CreateDatabaseWizardPageDomino.User.Tooltip"));
-		wUserName.setLayoutData(new FormDataBuilder().top(wReplicaID).fullWidth().result());
-		wUserName.addModifyListener(lsMod);
-		props.setLook(wUserName);
+		txtUserName.setLayoutData(new FormDataBuilder().top(txtReplicaID).fullWidth().result());
+		txtUserName.addModifyListener(lsMod);
+		props.setLook(txtUserName);
 
 		// Password line
-		wPassword = new LabelText(composite,
+		txtPassword = new LabelText(composite,
 				BaseMessages.getString(PKG, "CreateDatabaseWizardPageDomino.Password.Label"),
 				BaseMessages.getString(PKG, "CreateDatabaseWizardPageDomino.Password.Tooltip"));
-		wPassword.getTextWidget().setEchoChar('*');
-		wPassword.setLayoutData(new FormDataBuilder().top(wUserName).fullWidth().result());
-		wPassword.addModifyListener(lsMod);
-		props.setLook(wPassword);
+		txtPassword.getTextWidget().setEchoChar('*');
+		txtPassword.setLayoutData(new FormDataBuilder().top(txtUserName).fullWidth().result());
+		txtPassword.addModifyListener(lsMod);
+		props.setLook(txtPassword);
 
 		// set the composite as the control for this page
 		setControl(composite);
 	}
 
 	public void setData() {
-		wServer.setText(Const.NVL(database.getHostname(), ""));
-		wDatabase.setText(Const.NVL(database.getDatabaseName(), ""));
-		wReplicaID
+		txtServer.setText(Const.NVL(database.getHostname(), ""));
+		txtDatabase.setText(Const.NVL(database.getDatabaseName(), ""));
+		txtReplicaID
 				.setText(Const.NVL(database.getAttributes().getProperty(DominoDatabaseMeta.ATTRIBUTE_REPLICA_ID, ""), ""));
-		wUserName.setText(Const.NVL(database.getUsername(), ""));
-		wPassword.setText(Const.NVL(database.getPassword(), ""));
+		txtUserName.setText(Const.NVL(database.getUsername(), ""));
+		txtPassword.setText(Const.NVL(database.getPassword(), ""));
 	}
 	
 	
 	@Override
 	public boolean canFlipToNextPage() {
 
-		if (Utils.isEmpty(wDatabase.getText()) && Utils.isEmpty(wReplicaID.getText())) {
+		if (Utils.isEmpty(txtDatabase.getText()) && Utils.isEmpty(txtReplicaID.getText())) {
 			setErrorMessage(BaseMessages.getString(PKG, "CreateDatabaseWizardPageDomino.ErrorMessage.InvalidInput"));
 			return false;
 		} else {
@@ -136,24 +135,24 @@ public class CreateDatabaseWizardPageDomino extends WizardPage {
 	}
 
 	public DatabaseMeta getDatabaseInfo() {
-		if (!Utils.isEmpty(wServer.getText())) {
-			database.setHostname(wServer.getText());
+		if (!Utils.isEmpty(txtServer.getText())) {
+			database.setHostname(txtServer.getText());
 		}
 
-		if (!Utils.isEmpty(wDatabase.getText())) {
-			database.setDBName(wDatabase.getText());
+		if (!Utils.isEmpty(txtDatabase.getText())) {
+			database.setDBName(txtDatabase.getText());
 		}
 
-		if (!Utils.isEmpty(wReplicaID.getText())) {
-			database.getAttributes().put(DominoDatabaseMeta.ATTRIBUTE_REPLICA_ID, wReplicaID.getText());
+		if (!Utils.isEmpty(txtReplicaID.getText())) {
+			database.getAttributes().put(DominoDatabaseMeta.ATTRIBUTE_REPLICA_ID, txtReplicaID.getText());
 		}
 
-		if (!Utils.isEmpty(wUserName.getText())) {
-			database.setDBName(wDatabase.getText());
+		if (!Utils.isEmpty(txtUserName.getText())) {
+			database.setDBName(txtDatabase.getText());
 		}
 
-		if (!Utils.isEmpty(wPassword.getText())) {
-			database.setDBName(wDatabase.getText());
+		if (!Utils.isEmpty(txtPassword.getText())) {
+			database.setDBName(txtDatabase.getText());
 		}
 
 		return database;

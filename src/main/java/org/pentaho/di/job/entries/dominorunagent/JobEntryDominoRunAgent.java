@@ -146,8 +146,8 @@ public class JobEntryDominoRunAgent extends JobEntryBase implements Cloneable, J
 		StringBuilder xml = new StringBuilder(100);
 
 		xml.append(super.getXML());
-		xml.append('\t').append(XMLHandler.addTagValue(TAG_AGENT, agentName));
-		xml.append('\t').append(XMLHandler.addTagValue(TAG_CONNECTION, database == null ? null : database.getName()));
+		xml.append(XMLHandler.addTagValue(TAG_AGENT, agentName));
+		xml.append(XMLHandler.addTagValue(TAG_CONNECTION, database == null ? null : database.getName()));
 
 		return xml.toString();
 	}
