@@ -1,4 +1,4 @@
-package org.pentaho.di.trans.steps.dominoinput;
+package org.kettle.trans.steps.dominoinput;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Vector;
 
-import org.pentaho.di.core.database.DominoDatabaseConnection;
+import org.kettle.core.database.DominoDatabaseConnection;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowDataUtil;
 import org.pentaho.di.core.row.RowMeta;
@@ -38,7 +38,7 @@ public class DominoInputStep extends BaseStep implements StepInterface {
 	/**
 	 * The package name used for internationalization
 	 */
-	private static Class<?> PKG = DominoInputMeta.class;
+	private static final Class<?> PKG = DominoInputMeta.class;
 
 	private DominoDatabaseConnection connection = null;
 
@@ -69,9 +69,13 @@ public class DominoInputStep extends BaseStep implements StepInterface {
 		DominoInputMeta meta = (DominoInputMeta) smi;
 		DominoInputData data = (DominoInputData) sdi;
 
-		first = true;
+		if (super.init(meta, data)) {
+			first = true;
 
-		return super.init(meta, data);
+			return true;
+		}
+
+		return false;
 	}
 
 	@Override
@@ -80,7 +84,6 @@ public class DominoInputStep extends BaseStep implements StepInterface {
 		DominoInputData data = (DominoInputData) sdi;
 
 		boolean result = false;
-
 		try {
 			if (first) {
 				first = false;
@@ -92,7 +95,7 @@ public class DominoInputStep extends BaseStep implements StepInterface {
 				// create Domino connection
 				connection = new DominoDatabaseConnection(meta.getDatabaseMeta());
 				if (log.isDetailed()) {
-					logDetailed(BaseMessages.getString(PKG, "DominoInput.Log.DatabaseOpen"), connection);
+					logDetailed(BaseMessages.getString(PKG, "DominoInputStep.Log.DatabaseOpen"), connection);
 				}
 
 				if (meta.getMode() == DominoInputMode.VIEW) {
@@ -102,60 +105,62 @@ public class DominoInputStep extends BaseStep implements StepInterface {
 
 					// get a view from a database
 					view = connection.getView(viewName);
-					if (view != null) {
-						if (log.isDetailed()) {
-							logDetailed(BaseMessages.getString(PKG, "DominoInput.Log.ViewFound"), viewName);
-						}
+					if (view == null) {
 
-						// disable view auto updating
-						view.setAutoUpdate(false);
+						throw new KettleException(BaseMessages.getString(PKG, "DominoInputStep.Error.ViewNotfound",
+								connection, viewName));
 
-						// Create mapping column
-						data.columns = new HashMap<>();
-						Vector<?> names = view.getColumnNames();
-						for (DominoField field : meta.getDominoFields()) {
-							boolean found = false;
-							for (int column = 0; column < names.size(); column++) {
-								if (field.getName().equals(names.get(column))) {
-									data.columns.put(field, column);
-									found = true;
-								}
+					}
 
+					if (log.isDetailed()) {
+						logDetailed(BaseMessages.getString(PKG, "DominoInputStep.Log.ViewFound"), viewName);
+					}
+
+					// disable view auto updating
+					view.setAutoUpdate(false);
+
+					// Create mapping column
+					data.columns = new HashMap<>();
+					Vector<?> names = view.getColumnNames();
+					for (DominoField field : meta.getDominoFields()) {
+						boolean found = false;
+						for (int column = 0; column < names.size(); column++) {
+							if (field.getName().equals(names.get(column))) {
+								data.columns.put(field, column);
+								found = true;
 							}
 
-							if (found == false) {
-								data.columns.put(field, -1);
-								this.logError(BaseMessages.getString(PKG, "DominoInput.ErrorMessage.ViewColumnNotfound",
-										viewName, field.getName()));
-							}
 						}
 
-						// create view navigator
-						viewNavigator = view.createViewNav();
-						if (log.isDetailed()) {
-							logDetailed(BaseMessages.getString(PKG, "DominoInput.Log.ViewNavigatorCreated"));
+						if (found == false) {
+							data.columns.put(field, -1);
+							this.logError(BaseMessages.getString(PKG, "DominoInputStep.Error.ViewColumnNotfound",
+									viewName, field.getName()));
 						}
+					}
 
-						// enable cache for max buffering
-						if (connection.isClientInstalled()) {
-							this.setCacheGuidance(viewNavigator, 400, ViewNavigator.VN_CACHEGUIDANCE_READSELECTIVE);
-						}
+					// create view navigator
+					viewNavigator = view.createViewNav();
+					if (log.isDetailed()) {
+						logDetailed(BaseMessages.getString(PKG, "DominoInputStep.Log.ViewNavigatorCreated"));
+					}
 
-						// Not implemented on IIOP
-						// navigator.setEntryOptions(ViewNavigator.VN_ENTRYOPT_NOCOUNTDATA
-						// +
-						// ViewNavigator.VN_ENTRYOPT_NOCOLUMNVALUES);
-						// navigator.setCacheGuidance(Integer.MAX_VALUE,
-						// ViewNavigator.VN_CACHEGUIDANCE_READSELECTIVE);
+					// enable cache for max buffering
+					if (connection.isUseLocalClient()) {
+						this.setCacheGuidance(viewNavigator, 400, ViewNavigator.VN_CACHEGUIDANCE_READSELECTIVE);
+					}
 
-						viewEntry = viewNavigator.getFirst();
-						if (viewEntry == null) {
-							setOutputDone();
-							return false;
-						}
-					} else {
-						logError(BaseMessages.getString(PKG, "DominoInput.ErrorMessage.ViewNotfound", connection,
-								viewName));
+					// Not implemented on IIOP
+					// navigator.setEntryOptions(ViewNavigator.VN_ENTRYOPT_NOCOUNTDATA
+					// +
+					// ViewNavigator.VN_ENTRYOPT_NOCOLUMNVALUES);
+					// navigator.setCacheGuidance(Integer.MAX_VALUE,
+					// ViewNavigator.VN_CACHEGUIDANCE_READSELECTIVE);
+
+					viewEntry = viewNavigator.getFirst();
+					if (viewEntry == null) {
+						setOutputDone();
+						return false;
 					}
 
 				}
@@ -172,6 +177,7 @@ public class DominoInputStep extends BaseStep implements StepInterface {
 						return false;
 					}
 				}
+
 			}
 
 			if (meta.getMode() == DominoInputMode.VIEW) {
@@ -180,9 +186,12 @@ public class DominoInputStep extends BaseStep implements StepInterface {
 				result = this.processDocument(meta, data);
 			}
 		} catch (Exception e) {
-			logError(BaseMessages.getString(PKG, "DominoInput.Log.DBException"), e);
+			logError(e.getMessage(), e);
 			setErrors(1);
 			stopAll();
+			setOutputDone(); // signal end to receiver(s)
+			
+			return false;
 		}
 
 		return result;
@@ -220,7 +229,7 @@ public class DominoInputStep extends BaseStep implements StepInterface {
 
 		// recycle any handles to C++ objects in the Vector like
 		// DateTime
-		if (connection.isClientInstalled()) {
+		if (connection.isUseLocalClient()) {
 			connection.getSession().recycle(values);
 		}
 
@@ -310,7 +319,7 @@ public class DominoInputStep extends BaseStep implements StepInterface {
 				view = null;
 			}
 		} catch (NotesException e) {
-			logError(BaseMessages.getString(PKG, "DominoInput.Log.DBException"), e);
+			logError(BaseMessages.getString(PKG, "DominoInputStep.Log.DBException"), e);
 		} finally {
 			if (connection != null) {
 				connection.close();
@@ -417,14 +426,14 @@ public class DominoInputStep extends BaseStep implements StepInterface {
 				try {
 					value = ((lotus.domino.DateTime) value).toJavaDate();
 				} catch (NotesException e) {
-					throw new KettleException(BaseMessages.getString(PKG, "DominoInput.ErrorMessage.DateConversion", //$NON-NLS-1$
+					throw new KettleException(BaseMessages.getString(PKG, "DominoInputStep.Error.DateConversion", //$NON-NLS-1$
 							meta, String.valueOf(value)), e);
 				}
 			} else if (value instanceof Number) {
 				value = new Date(((Number) value).longValue());
 
 			} else {
-				throw new KettleException(BaseMessages.getString(PKG, "DominoInput.ErrorMessage.DateConversion", //$NON-NLS-1$
+				throw new KettleException(BaseMessages.getString(PKG, "DominoInputStep.Error.DateConversion", //$NON-NLS-1$
 						meta, String.valueOf(value)));
 			}
 
@@ -436,14 +445,14 @@ public class DominoInputStep extends BaseStep implements StepInterface {
 				try {
 					value = Timestamp.from(((lotus.domino.DateTime) value).toJavaDate().toInstant());
 				} catch (NotesException e) {
-					throw new KettleException(BaseMessages.getString(PKG, "DominoInput.ErrorMessage.DateConversion", //$NON-NLS-1$
+					throw new KettleException(BaseMessages.getString(PKG, "DominoInputStep.Error.DateConversion", //$NON-NLS-1$
 							meta, String.valueOf(value)), e);
 				}
 			} else if (value instanceof Number) {
 				value = new Timestamp(((Number) value).longValue());
 
 			} else {
-				throw new KettleException(BaseMessages.getString(PKG, "DominoInput.ErrorMessage.DateConversion", //$NON-NLS-1$
+				throw new KettleException(BaseMessages.getString(PKG, "DominoInputStep.Error.DateConversion", //$NON-NLS-1$
 						meta, String.valueOf(value)));
 
 			}
@@ -475,7 +484,7 @@ public class DominoInputStep extends BaseStep implements StepInterface {
 			try {
 				value = InetAddress.getByName(value.toString());
 			} catch (UnknownHostException e) {
-				throw new KettleException(BaseMessages.getString(PKG, "DominoInput.ErrorMessage.DateConversion", //$NON-NLS-1$
+				throw new KettleException(BaseMessages.getString(PKG, "DominoInputStep.ErrorMessage.DateConversion", //$NON-NLS-1$
 						meta, String.valueOf(value)), e);
 
 			}

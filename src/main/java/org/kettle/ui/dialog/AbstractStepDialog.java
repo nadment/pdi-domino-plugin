@@ -1,8 +1,9 @@
-package org.pentaho.di.ui.dialog;
+package org.kettle.ui.dialog;
 
 import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -11,6 +12,8 @@ import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -21,7 +24,10 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.StepPluginType;
@@ -29,332 +35,484 @@ import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
+import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.ui.core.ConstUI;
 import org.pentaho.di.ui.core.FormDataBuilder;
+import org.pentaho.di.ui.core.database.wizard.CreateDatabaseWizard;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.di.ui.util.SwtSvgImageUtil;
 
 public abstract class AbstractStepDialog<T extends StepMetaInterface> extends BaseStepDialog
-    implements StepDialogInterface {
+		implements StepDialogInterface {
 
-  public static final int LARGE_MARGIN = 15;
+	public static final int LARGE_MARGIN = 15;
 
-  protected static final int BUTTON_WIDTH = 80;
+	protected static final int BUTTON_WIDTH = 80;
 
-  protected ModifyListener lsMod;
-  
-  
-  public AbstractStepDialog(Shell parent, Object stepMeta, TransMeta transMeta, String stepname) {
-    super(parent, (StepMetaInterface) stepMeta, transMeta, stepname);
+	protected ModifyListener lsMod;
 
-    //setText(stepMeta.getClass().getAnnotation(org.pentaho.di.core.annotations.Step.class).name());
-  }
+	public AbstractStepDialog(Shell parent, Object stepMeta, TransMeta transMeta, String stepname) {
+		super(parent, (StepMetaInterface) stepMeta, transMeta, stepname);
 
-  @SuppressWarnings("unchecked")
-  public T getStepMeta() {
-    return (T) this.baseStepMeta;
-  }
+		// setText(stepMeta.getClass().getAnnotation(org.pentaho.di.core.annotations.Step.class).name());
+	}
 
-  protected final Control createContents(final Composite parent) {
+	@SuppressWarnings("unchecked")
+	public T getStepMeta() {
+		return (T) this.baseStepMeta;
+	}
 
-    Control titleArea = this.createTitleArea(parent);
+	protected final Control createContents(final Composite parent) {
 
-    // The title separator line
-    Label titleSeparator = new Label(parent, SWT.HORIZONTAL | SWT.SEPARATOR);
-    titleSeparator.setLayoutData(new FormDataBuilder().top(titleArea, LARGE_MARGIN).fullWidth().result());
-    props.setLook(titleSeparator);
+		Control titleArea = this.createTitleArea(parent);
 
-    // The button bar
-    Control buttonBar = this.createButtonBar(parent);
-    buttonBar.setLayoutData(new FormDataBuilder().fullWidth().bottom().result());
+		// The title separator line
+		Label titleSeparator = new Label(parent, SWT.HORIZONTAL | SWT.SEPARATOR);
+		titleSeparator.setLayoutData(new FormDataBuilder().top(titleArea, LARGE_MARGIN).fullWidth().result());
+		props.setLook(titleSeparator);
 
-    // The bottom separator line
-    Label bottomSeparator = new Label(parent, SWT.HORIZONTAL | SWT.SEPARATOR);
-    bottomSeparator.setLayoutData(new FormDataBuilder().bottom(buttonBar, -LARGE_MARGIN).fullWidth().result());
-    props.setLook(bottomSeparator);
+		// The button bar
+		Control buttonBar = this.createButtonBar(parent);
+		buttonBar.setLayoutData(new FormDataBuilder().fullWidth().bottom().result());
 
-    Composite area = new Composite(parent, SWT.NONE);
-    area.setLayout(new FormLayout());
-    area.setLayoutData(new FormDataBuilder().top(titleSeparator, LARGE_MARGIN).bottom(bottomSeparator, -LARGE_MARGIN)
-        .fullWidth().result());
-    props.setLook(area);
+		// The bottom separator line
+		Label bottomSeparator = new Label(parent, SWT.HORIZONTAL | SWT.SEPARATOR);
+		bottomSeparator.setLayoutData(new FormDataBuilder().bottom(buttonBar, -LARGE_MARGIN).fullWidth().result());
+		props.setLook(bottomSeparator);
 
-    this.createDialogArea(area);
+		Composite area = new Composite(parent, SWT.NONE);
+		area.setLayout(new FormLayout());
+		area.setLayoutData(new FormDataBuilder().top(titleSeparator, LARGE_MARGIN)
+				.bottom(bottomSeparator, -LARGE_MARGIN).fullWidth().result());
+		props.setLook(area);
 
-    return area;
-  }
+		this.createDialogArea(area);
 
-  protected final Control createTitleArea(final Composite parent) {
+		return area;
+	}
 
-    Composite composite = new Composite(parent, SWT.NONE);
-    composite.setLayout(new FormLayout());
-    composite.setLayoutData(new FormDataBuilder().top().fullWidth().result());
-    props.setLook(composite);
+	protected final Control createTitleArea(final Composite parent) {
 
-    Label icon = new Label(composite, SWT.CENTER);
-    icon.setImage(getImage());
-    icon.setLayoutData(new FormDataBuilder().top().right(100, 0).width(ConstUI.ICON_SIZE).result());
-    props.setLook(icon);
+		Composite composite = new Composite(parent, SWT.NONE);
+		composite.setLayout(new FormLayout());
+		composite.setLayoutData(new FormDataBuilder().top().fullWidth().result());
+		props.setLook(composite);
 
-    Label label = new Label(composite, SWT.NONE);
-    label.setText(BaseMessages.getString("System.Label.StepName"));
-    label.setLayoutData(new FormDataBuilder().top().left().right(icon, 100).result());
-    props.setLook(label);
-    
-    // Widget Step name
-    wStepname = new Text(composite, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    wStepname.setLayoutData(new FormDataBuilder().top(label).left().right(icon, -ConstUI.ICON_SIZE).result());
-    wStepname.addModifyListener(lsMod);
-    wStepname.addSelectionListener(lsDef);
-    props.setLook(wStepname);
-        
-    final ControlDecoration deco = new ControlDecoration(wStepname, SWT.TOP | SWT.LEFT);
-    deco.setDescriptionText(BaseMessages.getString("System.StepNameMissing.Msg"));
-    deco.setImage(FieldDecorationRegistry.getDefault().getFieldDecoration(FieldDecorationRegistry.DEC_ERROR).getImage());
-    deco.setShowOnlyOnFocus(true);
-    deco.hide();
-    
-    wStepname.addModifyListener(new ModifyListener() {
-      public void modifyText(ModifyEvent e) {
-        if (wStepname.getText().length() > 0) {
-          deco.hide();
-        } else {
-          deco.show();
-        }
-        
-        baseStepMeta.setChanged();
-        
-        wOK.setEnabled(isValid());
-      }
-    });
-    
-    return composite;
-  }
+		Label icon = new Label(composite, SWT.CENTER);
+		icon.setImage(getImage());
+		icon.setLayoutData(new FormDataBuilder().top().right(100, 0).width(ConstUI.ICON_SIZE).result());
+		props.setLook(icon);
 
-  /**
-   * Creates and returns the contents of the upper part of this dialog (above the button bar).
-   * <p>
-   * The <code>Dialog</code> implementation of this framework method creates and returns a new <code>Composite</code> with no margins and spacing. Subclasses
-   * should override.
-   * </p>
-   * 
-   * @param parent
-   *            The parent composite to contain the dialog area
-   * @return the dialog area control
-   */
-  protected Control createDialogArea(final Composite parent) {
+		Label label = new Label(composite, SWT.NONE);
+		label.setText(BaseMessages.getString("System.Label.StepName"));
+		label.setLayoutData(new FormDataBuilder().top().left().right(icon, 100).result());
+		props.setLook(label);
 
-    // Create the top level composite for the dialog area
-    Composite composite = new Composite(parent, SWT.NONE);
-    FormLayout formLayout = new FormLayout();
-    formLayout.marginWidth = Const.FORM_MARGIN;
-    formLayout.marginHeight = Const.FORM_MARGIN;
-    composite.setLayout(formLayout);
+		// Widget Step name
+		wStepname = new Text(composite, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
+		wStepname.setLayoutData(new FormDataBuilder().top(label).left().right(icon, -ConstUI.ICON_SIZE).result());
+		wStepname.addModifyListener(lsMod);
+		wStepname.addSelectionListener(lsDef);
+		props.setLook(wStepname);
 
-    return composite;
-  }
+		final ControlDecoration deco = new ControlDecoration(wStepname, SWT.TOP | SWT.LEFT);
+		deco.setDescriptionText(BaseMessages.getString("System.StepNameMissing.Msg"));
+		deco.setImage(
+				FieldDecorationRegistry.getDefault().getFieldDecoration(FieldDecorationRegistry.DEC_ERROR).getImage());
+		deco.setShowOnlyOnFocus(true);
+		deco.hide();
 
-  protected Control createButtonBar(final Composite parent) {
+		wStepname.addModifyListener(new ModifyListener() {
+			public void modifyText(ModifyEvent e) {
+				if (wStepname.getText().length() > 0) {
+					deco.hide();
+				} else {
+					deco.show();
+				}
 
-    Composite composite = new Composite(parent, SWT.NONE);
-    composite.setLayout(new FormLayout());
-    composite.setLayoutData(new FormDataBuilder().fullWidth().bottom().result());
-    composite.setFont(parent.getFont());
-    props.setLook(composite);
+				baseStepMeta.setChanged();
 
-    // Add the buttons to the button bar.
-    this.createButtonsForButtonBar(composite);
+				wOK.setEnabled(isValid());
+			}
+		});
 
-    return composite;
-  }
+		return composite;
+	}
 
-  protected void createButtonsForButtonBar(final Composite parent) {
-    wCancel = new Button(parent, SWT.PUSH);
-    wCancel.setText(BaseMessages.getString("System.Button.Cancel"));
-//    wCancel.setLayoutData(new FormDataBuilder().bottom().right().width(BUTTON_WIDTH).result());
-    wCancel.setLayoutData(new FormDataBuilder().bottom().right().result());
-    wCancel.addListener(SWT.Selection, new Listener() {
-      @Override
-      public void handleEvent(Event e) {
-        onCancelPressed();
-      }
-    });
+	/**
+	 * Creates and returns the contents of the upper part of this dialog (above
+	 * the button bar).
+	 * <p>
+	 * The <code>Dialog</code> implementation of this framework method creates
+	 * and returns a new <code>Composite</code> with no margins and spacing.
+	 * Subclasses should override.
+	 * </p>
+	 * 
+	 * @param parent
+	 *            The parent composite to contain the dialog area
+	 * @return the dialog area control
+	 */
+	protected Control createDialogArea(final Composite parent) {
 
-    wOK = new Button(parent, SWT.PUSH);
-    wOK.setText(BaseMessages.getString("System.Button.OK"));
-//    wOK.setLayoutData(new FormDataBuilder().bottom().right(wCancel, -ConstUI.SMALL_MARGIN).width(BUTTON_WIDTH).result());
-    wOK.setLayoutData(new FormDataBuilder().bottom().right(wCancel, -ConstUI.SMALL_MARGIN).result());
-    wOK.addListener(SWT.Selection, new Listener() {
-      @Override
-      public void handleEvent(Event e) {
-        onOkPressed();
-      }
-    });
-  }
+		// Create the top level composite for the dialog area
+		Composite composite = new Composite(parent, SWT.NONE);
+		FormLayout formLayout = new FormLayout();
+		formLayout.marginWidth = Const.FORM_MARGIN;
+		formLayout.marginHeight = Const.FORM_MARGIN;
+		composite.setLayout(formLayout);
 
-  /**
-   * This method is called by Spoon when the user opens the settings dialog of the step. It opens the dialog and returns only once the dialog has been closed
-   * by the user.
-   *
-   * If the user confirms the dialog, the meta object (passed in the constructor) is updated to reflect the new step settings. The changed flag of the meta
-   * object reflect whether the step configuration was changed by the dialog.
-   *
-   * If the user cancels the dialog, the meta object is not updated
-   *
-   * The open() method returns the name of the step after the user has confirmed the dialog, or null if the user cancelled the dialog.
-   */
-  @Override
-  public String open() {
+		return composite;
+	}
 
-    Shell parent = getParent();
-    Display display = parent.getDisplay();
+	protected Control createButtonBar(final Composite parent) {
 
-    // Create shell
-    shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MAX | SWT.MIN);
-    shell.setText(getText());
-    // desactiver pour les tests uniquement sinon NPE
-    setShellImage(shell, baseStepMeta);
+		Composite composite = new Composite(parent, SWT.NONE);
+		composite.setLayout(new FormLayout());
+		composite.setLayoutData(new FormDataBuilder().fullWidth().bottom().result());
+		composite.setFont(parent.getFont());
+		props.setLook(composite);
 
-    //shell.setImage(GUIResource.getInstance().getImageVariable());
+		// Add the buttons to the button bar.
+		this.createButtonsForButtonBar(composite);
 
-    FormLayout formLayout = new FormLayout();
-    formLayout.marginWidth = LARGE_MARGIN;
-    formLayout.marginHeight = LARGE_MARGIN;
-    shell.setLayout(formLayout);
-    shell.setMinimumSize(getMinimumSize());
-    props.setLook(shell);
+		return composite;
+	}
 
-    
-    // Default listener (for hitting "enter")
-    lsDef = new SelectionAdapter() {
-      @Override
-      public void widgetDefaultSelected(SelectionEvent e) {
-        onOkPressed();
-      }
-    };
-    
-    // The ModifyListener used on all controls. It will update the meta object to
-    // indicate that changes are being made.
-    lsMod = new ModifyListener() {
-      @Override
-      public void modifyText(ModifyEvent e) {
-        baseStepMeta.setChanged();
-        
-        wOK.setEnabled(isValid());
-      }
-    };
-    
-    
-    this.createContents(shell);
+	protected void createButtonsForButtonBar(final Composite parent) {
+		wCancel = new Button(parent, SWT.PUSH);
+		wCancel.setText(BaseMessages.getString("System.Button.Cancel"));
+		// wCancel.setLayoutData(new
+		// FormDataBuilder().bottom().right().width(BUTTON_WIDTH).result());
+		wCancel.setLayoutData(new FormDataBuilder().bottom().right().result());
+		wCancel.addListener(SWT.Selection, new Listener() {
+			@Override
+			public void handleEvent(Event e) {
+				onCancelPressed();
+			}
+		});
 
-    // Save the value of the changed flag on the meta object. If the user cancels
-    // the dialog, it will be restored to this saved value.
-    // The "changed" variable is inherited from BaseStepDialog
-    changed = stepMeta.hasChanged();
+		wOK = new Button(parent, SWT.PUSH);
+		wOK.setText(BaseMessages.getString("System.Button.OK"));
+		// wOK.setLayoutData(new FormDataBuilder().bottom().right(wCancel,
+		// -ConstUI.SMALL_MARGIN).width(BUTTON_WIDTH).result());
+		wOK.setLayoutData(new FormDataBuilder().bottom().right(wCancel, -ConstUI.SMALL_MARGIN).result());
+		wOK.addListener(SWT.Selection, new Listener() {
+			@Override
+			public void handleEvent(Event e) {
+				onOkPressed();
+			}
+		});
+	}
 
-    // Populate the dialog with the values from the meta object
-    loadMeta(this.getStepMeta());
+	/**
+	 * This method is called by Spoon when the user opens the settings dialog of
+	 * the step. It opens the dialog and returns only once the dialog has been
+	 * closed by the user.
+	 *
+	 * If the user confirms the dialog, the meta object (passed in the
+	 * constructor) is updated to reflect the new step settings. The changed
+	 * flag of the meta object reflect whether the step configuration was
+	 * changed by the dialog.
+	 *
+	 * If the user cancels the dialog, the meta object is not updated
+	 *
+	 * The open() method returns the name of the step after the user has
+	 * confirmed the dialog, or null if the user cancelled the dialog.
+	 */
+	@Override
+	public String open() {
 
-    // Restore the changed flag to original value, as the modify listeners fire during dialog population     
-    stepMeta.setChanged(changed);
+		Shell parent = getParent();
+		Display display = parent.getDisplay();
+
+		// Create shell
+		shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MAX | SWT.MIN);
+		shell.setText(getText());
+		// desactiver pour les tests uniquement sinon NPE
+		setShellImage(shell, baseStepMeta);
+
+		// shell.setImage(GUIResource.getInstance().getImageVariable());
+
+		FormLayout formLayout = new FormLayout();
+		formLayout.marginWidth = LARGE_MARGIN;
+		formLayout.marginHeight = LARGE_MARGIN;
+		shell.setLayout(formLayout);
+		shell.setMinimumSize(getMinimumSize());
+		props.setLook(shell);
+
+		// Default listener (for hitting "enter")
+		lsDef = new SelectionAdapter() {
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				onOkPressed();
+			}
+		};
+
+		// The ModifyListener used on all controls. It will update the meta
+		// object to
+		// indicate that changes are being made.
+		lsMod = new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				baseStepMeta.setChanged();
+
+				wOK.setEnabled(isValid());
+			}
+		};
+
+		this.createContents(shell);
+
+		// Save the value of the changed flag on the meta object. If the user
+		// cancels
+		// the dialog, it will be restored to this saved value.
+		// The "changed" variable is inherited from BaseStepDialog
+		changed = stepMeta.hasChanged();
+
+		// Populate the dialog with the values from the meta object
+		loadMeta(this.getStepMeta());
+
+		// Restore the changed flag to original value, as the modify listeners
+		// fire during dialog population
+		stepMeta.setChanged(changed);
+
+		// Detect X or ALT-F4 or something that kills this window...
+		shell.addShellListener(new ShellAdapter() {
+			@Override
+			public void shellClosed(ShellEvent e) {
+				onCancelPressed();
+			}
+		});
+
+		// Set/Restore the dialog size based on last position on screen
+		setSize(shell);
+
+		// Set focus on step name
+		wStepname.setText(stepname);
+		wStepname.selectAll();
+		wStepname.setFocus();
+
+		// Open dialog and enter event loop
+		shell.open();
+		while (!shell.isDisposed()) {
+			if (!display.readAndDispatch()) {
+				display.sleep();
+			}
+		}
+
+		// The "stepname" variable is inherited from BaseStepDialog
+		return stepname;
+	}
+
+	public Image getImage() {
+
+		PluginInterface plugin = PluginRegistry.getInstance().getPlugin(StepPluginType.class,
+				stepMeta.getStepMetaInterface());
+
+		if (plugin.getImageFile() != null) {
+			return SwtSvgImageUtil.getImage(shell.getDisplay(), getClass().getClassLoader(), plugin.getImageFile(),
+					ConstUI.ICON_SIZE, ConstUI.ICON_SIZE);
+		}
+
+		return GUIResource.getInstance().getImageStepError();
+
+	}
+
+	/**
+	 * Returns a point describing the minimum receiver's size. The x coordinate
+	 * of the result is the minimum width of the receiver. The y coordinate of
+	 * the result is the minimum height of the receiver.
+	 * 
+	 * @return the receiver's size
+	 */
+	public Point getMinimumSize() {
+		return new Point(100, 50);
+	}
+
+	/**
+	 * Called when the user confirms the dialog. Subclasses may override if
+	 * desired.
+	 */
+	protected void onOkPressed() {
+
+		if (Utils.isEmpty(wStepname.getText())) {
+			return;
+		}
+
+		stepname = wStepname.getText();
+
+		saveMeta(this.getStepMeta());
+
+		// Close the SWT dialog window
+		dispose();
+	}
+
+	/**
+	 * Called when the user cancels the dialog. Subclasses may override if
+	 * desired.
+	 */
+	protected void onCancelPressed() {
+		stepname = null;
+
+		// Restore initial state
+		stepMeta.setChanged(changed);
+
+		// Close the SWT dialog window
+		dispose();
+	}
+
+	/**
+	 * This helper method takes the step configuration stored in the meta object
+	 * and puts it into the dialog controls.
+	 */
+	protected abstract void loadMeta(T stepMeta);
+
+	/**
+	 * This helper method takes the information configured in the dialog
+	 * controls and stores it into the step configuration meta object
+	 */
+	protected abstract void saveMeta(T stepMeta);
+
+	protected boolean isValid() {
+		return !Utils.isEmpty(this.wStepname.getText());
+	}
+
+	/**
+	 * Adds the connection line.
+	 *
+	 * @param parent
+	 *            the parent UI component
+	 * @param previous
+	 *            the previous UI component
+	 * @param middle
+	 *            the middle
+	 * @param margin
+	 *            the margin
+	 * @return the the Combo Box component for the given parameters
+	 */
+	public CCombo addConnectionLine(Composite parent, Control previous, int middle, int margin) {
+
+		Label label = new Label(parent, SWT.RIGHT);
+		label.setText(BaseMessages.getString(StepInterface.class, "BaseStepDialog.Connection.Label"));
+		props.setLook(label);
+		FormData fdlConnection = new FormData();
+		fdlConnection.left = new FormAttachment(0, 0);
+		fdlConnection.right = new FormAttachment(middle, -margin);
+		if (previous != null) {
+			fdlConnection.top = new FormAttachment(previous, margin);
+		} else {
+			fdlConnection.top = new FormAttachment(0, 0);
+		}
+		label.setLayoutData(fdlConnection);
+
+		final CCombo wConnection = new CCombo(parent, SWT.BORDER | SWT.READ_ONLY);
+		props.setLook(wConnection);
+
+		FormData layoutData = new FormData();
+		layoutData.left = new FormAttachment(label, Const.FORM_MARGIN);
+		if (previous != null) {
+			layoutData.top = new FormAttachment(previous, Const.FORM_MARGIN);
+		} else {
+			layoutData.top = new FormAttachment(0, 0);
+		}
+
+		wConnection.setLayoutData(layoutData);
+
+		this.addDatabases(wConnection);
+
+		ToolBar toolbar = new ToolBar(parent, SWT.NONE);
+		FormData layoutToolbar = new FormData();
+		if (previous != null) {
+			layoutToolbar.top = new FormAttachment(previous, margin);
+		} else {
+			layoutToolbar.top = new FormAttachment(0, 0);
+		}
+
+		layoutToolbar.left = new FormAttachment(wConnection, margin);
+		toolbar.setLayoutData(layoutToolbar);
+		this.props.setLook(toolbar);
+		
+		toolbar.pack();
+
+		layoutData.right = new FormAttachment(100,-3*toolbar.getBounds().width);
 
 
+		ToolItem editItem = new ToolItem(toolbar, SWT.NONE);
+		
+		editItem.setImage(GUIResource.getInstance().getImageEdit());
+		editItem.setToolTipText(
+				BaseMessages.getString(StepInterface.class, "BaseStepDialog.EditConnectionButton.Label"));
+		//editItem.addSelectionListener( new EditConnectionListener( wConnection ) );
+		
+		ToolItem newItem = new ToolItem(toolbar, SWT.NONE);
+		newItem.setImage(GUIResource.getInstance().getImage("ui/images/Add.svg"));
+		newItem.setToolTipText(BaseMessages.getString(StepInterface.class, "BaseStepDialog.NewConnectionButton.Label"));
+		//newItem.addSelectionListener( new AddConnectionListener( wConnection ) );
+		
+		ToolItem wizardItem = new ToolItem(toolbar, SWT.NONE);
+		wizardItem.setImage(GUIResource.getInstance().getImage("wizard.svg", this.getClass().getClassLoader(), 16, 16));
+		wizardItem.setToolTipText(
+				BaseMessages.getString(StepInterface.class, "BaseStepDialog.WizardConnectionButton.Label"));
+		wizardItem.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				CreateDatabaseWizard wizard = new CreateDatabaseWizard();
+				DatabaseMeta database = wizard.createAndRunDatabaseWizard(shell, props, transMeta.getDatabases());
+				if (database != null) {
+					transMeta.addDatabase(database);
+					// reinitConnectionDropDown( wConnection,
+					// newDBInfo.getName() );
 
-    // Detect X or ALT-F4 or something that kills this window...
-    shell.addShellListener(new ShellAdapter() {
-      @Override
-      public void shellClosed(ShellEvent e) {
-        onCancelPressed();
-      }
-    });
+					wConnection.removeAll();
+					addDatabases(wConnection);
+					selectDatabase(wConnection, database.getName());
+				}
+			}
+		});
 
-    // Set/Restore the dialog size based on last position on screen
-    setSize(shell);
+		return wConnection;
+	}
 
-    // Set focus on step name
-    wStepname.setText(stepname);
-    wStepname.selectAll();
-    wStepname.setFocus();
-
-    // Open dialog and enter event loop
-    shell.open();
-    while (!shell.isDisposed()) {
-      if (!display.readAndDispatch()) {
-        display.sleep();
-      }
-    }
-
-    // The "stepname" variable is inherited from BaseStepDialog
-    return stepname;
-  }
-
-  public Image getImage() {
-
-    PluginInterface plugin = PluginRegistry.getInstance().getPlugin(StepPluginType.class,
-        stepMeta.getStepMetaInterface());
-
-    if (plugin.getImageFile() != null) {
-      return SwtSvgImageUtil.getImage(shell.getDisplay(), getClass().getClassLoader(), plugin.getImageFile(),
-          ConstUI.ICON_SIZE, ConstUI.ICON_SIZE);
-    }
-
-    return GUIResource.getInstance().getImageStepError();
-
-  }
-
-  /**
-   * Returns a point describing the minimum receiver's size. The x coordinate of the result is the minimum width of the receiver. The y coordinate of the
-   * result is the minimum height of the receiver.
-   * 
-   * @return the receiver's size 
-   */
-  public Point getMinimumSize() {
-    return new Point(100, 50);
-  }
-
-  /**
-   * Called when the user confirms the dialog. Subclasses may override if desired.
-   */
-  protected void onOkPressed() {
-
-    if (Utils.isEmpty(wStepname.getText())) {      
-      return;
-    }
-
-    stepname = wStepname.getText();
-
-    saveMeta(this.getStepMeta());
-
-    // Close the SWT dialog window
-    dispose();
-  }
-
-  /**
-   * Called when the user cancels the dialog. Subclasses may override if desired.
-   */
-  protected void onCancelPressed() {
-    stepname = null;
-
-    // Restore initial state
-    stepMeta.setChanged(changed);
-
-    // Close the SWT dialog window
-    dispose();
-  }
-
-  /**
-  * This helper method takes the step configuration stored in the meta object and puts it into the dialog controls.
-  */
-  protected abstract void loadMeta(T stepMeta);
-
-  /**
-   * This helper method takes the information configured in the dialog controls and stores it into the step configuration meta object
-   */
-  protected abstract void saveMeta(T stepMeta);
-
-  protected boolean isValid() {
-    return !Utils.isEmpty(this.wStepname.getText());
-  }
+	// public CCombo addConnectionLine(Composite arg0) {
+	// Label arg4 = new Label(arg0, 16384);
+	// arg4.setText(BaseMessages.getString(b,
+	// "HanaBulkLoaderStepDialog.Connection.Label", new String[0]));
+	// this.props.setLook(arg4);
+	// FormData arg2 = new FormData();
+	// arg2.left = new FormAttachment(0, d);
+	// arg2.top = new FormAttachment(0, c + -5);
+	// arg4.setLayoutData(arg2);
+	// CCombo arg1 = new CCombo(arg0, 2056);
+	// this.props.setLook(arg1);
+	// FormData arg3 = new FormData();
+	// arg3.left = new FormAttachment(0, d);
+	// arg3.top = new FormAttachment(arg4, e);
+	// arg3.width = h -
+	// GUIResource.getInstance().getImageVariable().getBounds().width - e + 1;
+	// arg1.setLayoutData(arg3);
+	// this.addDatabases(arg1);
+	// ToolBar arg5 = new ToolBar(arg0, 0);
+	// FormData arg6 = new FormData();
+	// arg6.top = new FormAttachment(arg4, e);
+	// arg6.left = new FormAttachment(arg1, e);
+	// arg5.setLayoutData(arg6);
+	// this.props.setLook(arg5);
+	// ToolItem arg7 = new ToolItem(arg5, 0);
+	// arg7.setImage(GUIResource.getInstance().getImage("ui/images/Edit.svg"));
+	// arg7.setToolTipText(BaseMessages.getString(StepInterface.class,
+	// "BaseStepDialog.EditConnectionButton.Label", new String[0]));
+	// arg7.addSelectionListener(new 18(this, arg1));
+	// ToolItem arg8 = new ToolItem(arg5, 0);
+	// arg8.setImage(GUIResource.getInstance().getImage("ui/images/Add.svg"));
+	// arg8.setToolTipText(BaseMessages.getString(StepInterface.class,
+	// "BaseStepDialog.NewConnectionButton.Label", new String[0]));
+	// arg8.addSelectionListener(new 19(this, arg1));
+	// ToolItem arg9 = new ToolItem(arg5, 0);
+	// arg9.setImage(GUIResource.getInstance().getImage("wizard.svg",
+	// this.getClass().getClassLoader(), 16, 16));
+	// arg9.setToolTipText(BaseMessages.getString(StepInterface.class,
+	// "BaseStepDialog.WizardConnectionButton.Label", new String[0]));
+	// arg9.addSelectionListener(new 20(this, arg1));
+	// return arg1;
+	// }
 }

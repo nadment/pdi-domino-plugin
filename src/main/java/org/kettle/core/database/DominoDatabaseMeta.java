@@ -1,12 +1,14 @@
-package org.pentaho.di.core.database;
+package org.kettle.core.database;
 
 import org.eclipse.jface.wizard.WizardPage;
+import org.kettle.ui.core.database.wizard.domino.CreateDatabaseWizardPageDomino;
+import org.pentaho.di.core.database.BaseDatabaseMeta;
+import org.pentaho.di.core.database.DatabaseInterface;
+import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
 import org.pentaho.di.core.row.ValueMetaInterface;
-import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.database.wizard.WizardPageFactory;
-import org.pentaho.di.ui.core.database.wizard.domino.CreateDatabaseWizardPageDomino;
 
 /**
  * --------------------------------------------------------------------------------------
@@ -24,6 +26,14 @@ import org.pentaho.di.ui.core.database.wizard.domino.CreateDatabaseWizardPageDom
 
 @DatabaseMetaPlugin(type = "DOMINO", typeDescription = "IBM Domino Database")
 public class DominoDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterface, WizardPageFactory {
+
+	public DominoDatabaseMeta() {
+		super();
+
+		this.addAttribute(ATTRIBUTE_USE_LOCAL_CLIENT, "False");
+	}
+
+	public static final String ATTRIBUTE_USE_LOCAL_CLIENT = "DominoUseLocalClient";
 
 	public static final String ATTRIBUTE_REPLICA_ID = "ReplicaID";
 
@@ -59,22 +69,6 @@ public class DominoDatabaseMeta extends BaseDatabaseMeta implements DatabaseInte
 	@Override
 	public String getURL(String hostname, String port, String databaseName) {
 		return null;
-	}
-
-	/**
-	 * @return true if the database supports bitmap indexes
-	 */
-	@Override
-	public boolean supportsBitmapIndex() {
-		return false;
-	}
-
-	/**
-	 * @return true if the database supports synonyms
-	 */
-	@Override
-	public boolean supportsSynonyms() {
-		return false;
 	}
 
 	/**
@@ -136,17 +130,36 @@ public class DominoDatabaseMeta extends BaseDatabaseMeta implements DatabaseInte
 
 	@Override
 	public String[] getUsedLibraries() {
-		// return new String[] { "Notes.jar", "NCSO.jar" };
-		return new String[] { "NCSO.jar" };
+		if (this.isUseLocalClient())
+			return new String[] { "Notes.jar" };
+		else
+			return new String[] { "NCSO.jar" };
 	}
 
 	@Override
 	public String getDatabaseFactoryName() {
-		return org.pentaho.di.core.database.DominoDatabaseFactory.class.getName();
+		return org.kettle.core.database.DominoDatabaseFactory.class.getName();
 	}
 
 	@Override
 	public boolean isExplorable() {
+		return false;
+	}
+
+	public boolean isUseLocalClient() {
+		// return Utils.isEmpty(this.getHostname());
+
+		Object value = getAttributes().get(ATTRIBUTE_USE_LOCAL_CLIENT);
+		if (value != null && value instanceof String) {
+
+			// Check if the String can be parsed into a boolean
+			try {
+				Boolean.parseBoolean((String) value);
+			} catch (IllegalArgumentException e) {
+				// Ignore
+			}
+		}
+
 		return false;
 	}
 
@@ -165,7 +178,7 @@ public class DominoDatabaseMeta extends BaseDatabaseMeta implements DatabaseInte
 		sb.append("[");
 		sb.append(this.getDatabaseName());
 		sb.append("] on ");
-		if (Utils.isEmpty(this.getHostname())) {
+		if (this.isUseLocalClient()) {
 			sb.append("local");
 		} else {
 			sb.append("serveur ");
@@ -177,6 +190,21 @@ public class DominoDatabaseMeta extends BaseDatabaseMeta implements DatabaseInte
 	@Override
 	public WizardPage createWizardPage(PropsUI props, DatabaseMeta info) {
 		return new CreateDatabaseWizardPageDomino(DOMINO, props, info);
+	}
+
+	@Override
+	public boolean supportsBitmapIndex() {
+		return false;
+	}
+
+	@Override
+	public boolean supportsSynonyms() {
+		return false;
+	}
+
+	@Override
+	public boolean supportsBatchUpdates() {
+		return false;
 	}
 
 }

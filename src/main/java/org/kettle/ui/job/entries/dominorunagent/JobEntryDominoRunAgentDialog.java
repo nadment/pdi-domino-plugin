@@ -1,4 +1,4 @@
-package org.pentaho.di.ui.job.entries.dominorunagent;
+package org.kettle.ui.job.entries.dominorunagent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,13 +14,15 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.kettle.core.database.DominoDatabaseMeta;
+import org.kettle.job.entries.dominorunagent.JobEntryDominoRunAgent;
+import org.kettle.ui.dialog.AbstractJobEntryDialog;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.annotations.PluginDialog;
 import org.pentaho.di.core.database.DatabaseMeta;
-import org.pentaho.di.core.database.DominoDatabaseMeta;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.JobMeta;
-import org.pentaho.di.job.entries.dominorunagent.JobEntryDominoRunAgent;
 import org.pentaho.di.job.entry.JobEntryDialogInterface;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.Repository;
@@ -28,12 +30,13 @@ import org.pentaho.di.ui.core.FormDataBuilder;
 import org.pentaho.di.ui.core.dialog.EnterSelectionDialog;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.widget.TextVarButton;
-import org.pentaho.di.ui.dialog.AbstractJobEntryDialog;
 
+
+@PluginDialog(id = "DominoRunAgent", image = "dominorunagent.svg", pluginType = PluginDialog.PluginType.JOBENTRY, documentationUrl = "https://help.pentaho.com")
 public class JobEntryDominoRunAgentDialog extends AbstractJobEntryDialog<JobEntryDominoRunAgent>
 		implements JobEntryDialogInterface {
 
-	private static Class<?> PKG = JobEntryDominoRunAgent.class;
+	private static final Class<?> PKG = JobEntryDominoRunAgent.class;
 
 	private CCombo cmbConnection;
 
@@ -152,7 +155,7 @@ public class JobEntryDominoRunAgentDialog extends AbstractJobEntryDialog<JobEntr
 	@Override
 	protected void loadMeta(final JobEntryDominoRunAgent jobEntry) {
 
-		txtAgentName.setText(Const.NVL(jobEntry.getAgent(), ""));
+		txtAgentName.setText(Const.nullToEmpty(jobEntry.getAgent()));
 
 		if (jobEntry.getDatabase() != null) {
 			cmbConnection.setText(jobEntry.getDatabase().getName());

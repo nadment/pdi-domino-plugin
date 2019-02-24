@@ -1,7 +1,8 @@
-package org.pentaho.di.trans.steps.dominoinput;
+package org.kettle.trans.steps.dominoinput;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.kettle.trans.steps.dominoinput.DominoInputMeta;
 import org.pentaho.di.core.injection.BaseMetadataInjectionTest;
 
 public class DominoInputMetaInjectionTest extends BaseMetadataInjectionTest<DominoInputMeta> {

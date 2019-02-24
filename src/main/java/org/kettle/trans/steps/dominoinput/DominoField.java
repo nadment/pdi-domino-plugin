@@ -1,5 +1,6 @@
-package org.pentaho.di.trans.steps.dominoinput;
+package org.kettle.trans.steps.dominoinput;
 
+import org.apache.commons.lang.StringUtils;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaBase;
@@ -14,26 +15,14 @@ import org.pentaho.di.core.row.value.ValueMetaString;
  */
 public class DominoField implements Cloneable {
 
-	public DominoField() {
-		super();
-
-		this.type = ValueMetaInterface.TYPE_STRING;
-		this.format = "";
-		this.trimtype = ValueMetaBase.TRIM_TYPE_NONE;
-		this.groupSymbol = "";
-		this.decimalSymbol = "";
-		this.currencySymbol = "";
-		this.precision = -1;
-	}
-
 	/** The target field name */
 	@Injection(name = "NAME", group = "FIELDS")
 	private String name;
 
 	private int type;
+
 	@Injection(name = "FORMULA", group = "FIELDS")
 	private String formula;
-
 	@Injection(name = "LENGTH", group = "FIELDS")
 	private int length = -1;
 	@Injection(name = "PRECISION", group = "FIELDS")
@@ -48,7 +37,17 @@ public class DominoField implements Cloneable {
 	@Injection(name = "GROUP", group = "FIELDS")
 	private String groupSymbol;
 
+	public DominoField() {
+		super();
 
+		this.type = ValueMetaInterface.TYPE_STRING;
+		this.format = "";
+		this.trimtype = ValueMetaBase.TRIM_TYPE_NONE;
+		this.groupSymbol = "";
+		this.decimalSymbol = "";
+		this.currencySymbol = "";
+		this.precision = -1;
+	}
 	
 	@Override
 	public Object clone() {
@@ -66,8 +65,8 @@ public class DominoField implements Cloneable {
 		return name;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setName(final String name) {
+		this.name = StringUtils.stripToNull(name);
 	}
 
 	public int getType() {
@@ -108,7 +107,7 @@ public class DominoField implements Cloneable {
 	}
 
 	public void setFormula(String formula) {
-		this.formula = formula;
+		this.formula = StringUtils.stripToNull(formula);
 	}
 	
 	public int getTrimType() {
@@ -150,7 +149,7 @@ public class DominoField implements Cloneable {
 	}
 
 	public void setDecimalSymbol(String decimal_symbol) {
-		this.decimalSymbol = decimal_symbol;
+		this.decimalSymbol = StringUtils.stripToNull(decimal_symbol);
 	}
 
 	public String getCurrencySymbol() {
@@ -158,7 +157,7 @@ public class DominoField implements Cloneable {
 	}
 
 	public void setCurrencySymbol(String currency_symbol) {
-		this.currencySymbol = currency_symbol;
+		this.currencySymbol = StringUtils.stripToNull(currency_symbol);
 	}
 
 	public int getPrecision() {
@@ -169,11 +168,8 @@ public class DominoField implements Cloneable {
 		this.precision = precision;
 	}
 
-
-
 	@Override
 	public String toString() {
-
 		return name + ":" + getTypeDesc() + "(" + length + "," + precision + ")";
 	}
 }

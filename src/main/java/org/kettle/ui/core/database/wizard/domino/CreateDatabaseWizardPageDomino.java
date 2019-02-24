@@ -1,4 +1,4 @@
-package org.pentaho.di.ui.core.database.wizard.domino;
+package org.kettle.ui.core.database.wizard.domino;
 
 import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.jface.wizard.IWizardPage;
@@ -8,19 +8,24 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.kettle.core.database.DominoDatabaseMeta;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.DatabaseMeta;
-import org.pentaho.di.core.database.DominoDatabaseMeta;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.FormDataBuilder;
 import org.pentaho.di.ui.core.PropsUI;
+import org.pentaho.di.ui.core.widget.LabelCombo;
 import org.pentaho.di.ui.core.widget.LabelText;
 
 public class CreateDatabaseWizardPageDomino extends WizardPage {
 
-	private static Class<?> PKG = CreateDatabaseWizardPageDomino.class; // for i18n purposes
+	private static final Class<?> PKG = CreateDatabaseWizardPageDomino.class; // for i18n purposes
 
+	private static final String[] CONNECTION_TYPE = new String[] {"Local","Remote"};
+	
+	private LabelCombo cmbConnection;
+	
 	private LabelText txtServer;
 
 	private LabelText txtDatabase;
@@ -35,6 +40,8 @@ public class CreateDatabaseWizardPageDomino extends WizardPage {
 
 	private DatabaseMeta database;
 
+
+	
 	public CreateDatabaseWizardPageDomino(String pageName, PropsUI props, DatabaseMeta info) {
 		super(pageName);
 		this.props = props;
@@ -66,11 +73,20 @@ public class CreateDatabaseWizardPageDomino extends WizardPage {
 			}
 		};
 
+		// 
+		cmbConnection = new LabelCombo(composite, BaseMessages.getString(PKG, "CreateDatabaseWizardPageDomino.Connection.Label"),
+				BaseMessages.getString(PKG, "CreateDatabaseWizardPageDomino.Connection.Tooltip"));
+		cmbConnection.setItems(CONNECTION_TYPE);
+		cmbConnection.setLayoutData(new FormDataBuilder().top().fullWidth().result());
+		cmbConnection.select(0);
+		cmbConnection.addModifyListener(lsMod);
+		props.setLook(cmbConnection);
+		
 		// Widget Server
 		txtServer = new LabelText(composite, BaseMessages.getString(PKG, "CreateDatabaseWizardPageDomino.Server.Label"),
 				BaseMessages.getString(PKG, "CreateDatabaseWizardPageDomino.Server.Tooltip"));
-		txtServer.setLayoutData(new FormDataBuilder().top().fullWidth().result());
-		// wServer.addModifyListener(lsMod);
+		txtServer.setLayoutData(new FormDataBuilder().top(cmbConnection).fullWidth().result());
+		txtServer.addModifyListener(lsMod);
 		props.setLook(txtServer);
 
 		// Widget database
@@ -110,10 +126,16 @@ public class CreateDatabaseWizardPageDomino extends WizardPage {
 	}
 
 	public void setData() {
+		
+		boolean isUseLocalClient = false;
+		String attribute = database.getAttributes().getProperty(DominoDatabaseMeta.ATTRIBUTE_USE_LOCAL_CLIENT);
+		if ( attribute!=null)
+			Boolean.parseBoolean(database.getAttributes().getProperty(DominoDatabaseMeta.ATTRIBUTE_USE_LOCAL_CLIENT));
+		
+		cmbConnection.select( isUseLocalClient ? 0:1);
 		txtServer.setText(Const.NVL(database.getHostname(), ""));
 		txtDatabase.setText(Const.NVL(database.getDatabaseName(), ""));
-		txtReplicaID
-				.setText(Const.NVL(database.getAttributes().getProperty(DominoDatabaseMeta.ATTRIBUTE_REPLICA_ID, ""), ""));
+		txtReplicaID.setText(Const.NVL(database.getAttributes().getProperty(DominoDatabaseMeta.ATTRIBUTE_REPLICA_ID, ""), ""));
 		txtUserName.setText(Const.NVL(database.getUsername(), ""));
 		txtPassword.setText(Const.NVL(database.getPassword(), ""));
 	}
@@ -131,10 +153,13 @@ public class CreateDatabaseWizardPageDomino extends WizardPage {
 			setMessage(BaseMessages.getString(PKG, "CreateDatabaseWizardPageDomino.Message.Next"));
 			return true;
 		}
-
 	}
 
 	public DatabaseMeta getDatabaseInfo() {
+
+		Boolean attribute = CONNECTION_TYPE[0].equals(cmbConnection.getText()) ? true:false;
+		database.getAttributes().put(DominoDatabaseMeta.ATTRIBUTE_USE_LOCAL_CLIENT, attribute);
+			
 		if (!Utils.isEmpty(txtServer.getText())) {
 			database.setHostname(txtServer.getText());
 		}

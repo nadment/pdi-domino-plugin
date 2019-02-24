@@ -1,15 +1,15 @@
-package org.pentaho.di.trans.steps.dominoinput;
+package org.kettle.trans.steps.dominoinput;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.kettle.core.database.DominoDatabaseConnection;
 import org.pentaho.di.core.CheckResult;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
-import org.pentaho.di.core.database.DominoDatabaseConnection;
 import org.pentaho.di.core.exception.KettleDatabaseException;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleStepException;
@@ -42,7 +42,7 @@ import lotus.domino.DocumentCollection;
 import lotus.domino.Item;
 import lotus.domino.View;
 
-@Step(id = "DominoInput", image = "dominoinput.svg", i18nPackageName = "org.pentaho.di.trans.steps.domino", name = "DominoInput.Name", description = "DominoInput.Description", categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Input", documentationUrl = "https://help.pentaho.com")
+@Step(id = "DominoInput", name = "DominoInput.Name", description = "DominoInput.Description", image = "dominoinput.svg", i18nPackageName = "org.kettle.trans.steps.domino", categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Input")
 
 @InjectionSupported(localizationPrefix = "DominoInputMeta.Injection.", groups = { "FIELDS" })
 
@@ -51,7 +51,7 @@ public class DominoInputMeta extends BaseStepMeta implements StepMetaInterface {
 	/**
 	 * The package name used for internationalization
 	 */
-	private static Class<?> PKG = DominoInputMeta.class; // for i18n purposes
+	private static final Class<?> PKG = DominoInputMeta.class; // for i18n purposes
 
 	private static final String TAG_ID_CONNECTION = "id_connection"; //$NON-NLS-1$
 	private static final String TAG_CONNECTION = "connection"; //$NON-NLS-1$

@@ -1,4 +1,4 @@
-package org.pentaho.di.trans.steps.dominoinput;
+package org.kettle.trans.steps.dominoinput;
 
 
 import java.util.Map;

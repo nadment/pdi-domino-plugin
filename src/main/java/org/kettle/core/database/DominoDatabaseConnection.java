@@ -1,8 +1,9 @@
-package org.pentaho.di.core.database;
+package org.kettle.core.database;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleDatabaseException;
 
 import lotus.domino.Agent;
@@ -30,6 +31,8 @@ public class DominoDatabaseConnection implements AutoCloseable {
 
 	private Database database;
 
+	private boolean useLocalClient;
+	
 	private String label;
 
 	public DominoDatabaseConnection(final DatabaseMeta meta) throws KettleDatabaseException {
@@ -43,8 +46,22 @@ public class DominoDatabaseConnection implements AutoCloseable {
 
 		try {
 
+			Object value = meta.getAttributes().get(DominoDatabaseMeta.ATTRIBUTE_USE_LOCAL_CLIENT);
+			
+			this.useLocalClient = false;
+			if (value != null && value instanceof String) {
+
+				// Check if the String can be parsed into a boolean
+				try {
+					this.useLocalClient = Boolean.parseBoolean((String) value);
+				} catch (IllegalArgumentException e) {
+					// Ignore
+				}
+			}
+		
+			
 			/* Local session - Notes client must be installed */
-			if (this.isClientInstalled()) {
+			if (this.isUseLocalClient()) {
 				NotesThread.sinitThread();
 			}
 
@@ -86,8 +103,8 @@ public class DominoDatabaseConnection implements AutoCloseable {
 		return session;
 	}
 
-	public boolean isClientInstalled() {
-		return false;
+	public boolean isUseLocalClient() {
+		return this.useLocalClient;
 	}
 
 	public synchronized void close() {
@@ -106,7 +123,7 @@ public class DominoDatabaseConnection implements AutoCloseable {
 			// Ignore
 		} finally {
 			// Local session
-			if (this.isClientInstalled()) {
+			if (this.isUseLocalClient()) {
 				NotesThread.stermThread();
 			}
 		}

@@ -1,6 +1,8 @@
-package org.pentaho.di.core.database;
+package org.kettle.core.database;
 
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.database.DatabaseFactoryInterface;
+import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleDatabaseException;
 
 import lotus.domino.Database;
@@ -39,10 +41,8 @@ public class RemoteDominoDatabaseFactory implements DatabaseFactoryInterface {
 			}
 
 			database.recycle();
-		} catch (Throwable e) {
-			report.append("Unable to connect to the IBM Domino server: ").append(db.getHostname()).append(Const.CR)
-					.append(Const.CR);
-			//report.append(Const.getStackTracker(e));
+		} catch (Throwable e) {		
+			throw new KettleDatabaseException("Unable to connect to the IBM Domino server with DIIOP: "+db.getHostname(), e.getCause());
 		} finally {
 			if (session != null) {
 				try {

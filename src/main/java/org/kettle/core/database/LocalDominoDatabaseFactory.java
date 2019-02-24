@@ -1,6 +1,8 @@
-package org.pentaho.di.core.database;
+package org.kettle.core.database;
 
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.database.DatabaseFactoryInterface;
+import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleDatabaseException;
 
 import lotus.domino.Database;
@@ -31,7 +33,7 @@ public class LocalDominoDatabaseFactory implements DatabaseFactoryInterface {
 			session = NotesFactory.createSession(db.getHostname(), db.getUsername(), db.getPassword());
 
 			// If the connection was successful
-			report.append("Connecting to IBM Domino server [").append(db.getHostname());
+			report.append("Connecting with local client to IBM Domino server [").append(db.getHostname());
 			report.append("] on platform ").append(session.getPlatform());
 			report.append(" succeeded without a problem.").append(Const.CR);
 
@@ -43,9 +45,7 @@ public class LocalDominoDatabaseFactory implements DatabaseFactoryInterface {
 
 			database.recycle();
 		} catch (Throwable e) {
-			report.append("Unable to connect to the IBM Domino server: ").append(db.getHostname()).append(Const.CR)
-					.append(Const.CR);
-			//report.append(Const.getStackTracker(e));
+			throw new KettleDatabaseException("Unable to connect with local client to the IBM Domino server: "+db.getHostname(), e.getCause());
 		} finally {
 
 

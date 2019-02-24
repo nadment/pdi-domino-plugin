@@ -1,15 +1,15 @@
-package org.pentaho.di.job.entries.dominorunagent;
+package org.kettle.job.entries.dominorunagent;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.kettle.core.database.DominoDatabaseConnection;
 import org.pentaho.di.cluster.SlaveServer;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.di.core.database.DatabaseMeta;
-import org.pentaho.di.core.database.DominoDatabaseConnection;
 import org.pentaho.di.core.exception.KettleDatabaseException;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
@@ -38,11 +38,11 @@ import lotus.domino.Agent;
  *
  */
 
-@JobEntry(id = "DominoRunAgent", image = "dominorunagent.svg", i18nPackageName = "org.pentaho.di.job.entries.dominorunagent", name = "JobEntryDominoRunAgent.Name", description = "JobEntryDominoRunAgent.Description", categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.Utility", documentationUrl = "https://help.pentaho.com")
+@JobEntry(id = "DominoRunAgent", image = "dominorunagent.svg", i18nPackageName = "org.kettle.job.entries.dominorunagent", name = "JobEntryDominoRunAgent.Name", description = "JobEntryDominoRunAgent.Description", categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.Utility")
 
 public class JobEntryDominoRunAgent extends JobEntryBase implements Cloneable, JobEntryInterface {
 
-	private static Class<?> PKG = JobEntryDominoRunAgent.class;
+	private static final Class<?> PKG = JobEntryDominoRunAgent.class;
 
 	private static final String TAG_CONNECTION = "connection"; //$NON-NLS-1$
 	private static final String TAG_ID_DATABASE = "id_database"; //$NON-NLS-1$

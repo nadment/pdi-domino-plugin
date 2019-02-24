@@ -1,8 +1,9 @@
-package org.pentaho.di.ui.trans.steps.dominoinput;
+package org.kettle.ui.trans.steps.dominoinput;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
@@ -27,20 +28,21 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
+import org.kettle.core.database.DominoDatabaseMeta;
+import org.kettle.trans.steps.dominoinput.DominoField;
+import org.kettle.trans.steps.dominoinput.DominoInputMeta;
+import org.kettle.trans.steps.dominoinput.DominoInputMode;
+import org.kettle.ui.dialog.AbstractStepDialog;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
+import org.pentaho.di.core.annotations.PluginDialog;
 import org.pentaho.di.core.database.DatabaseMeta;
-import org.pentaho.di.core.database.DominoDatabaseMeta;
-
 import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.TransPreviewFactory;
-import org.pentaho.di.trans.steps.dominoinput.DominoField;
-import org.pentaho.di.trans.steps.dominoinput.DominoInputMeta;
-import org.pentaho.di.trans.steps.dominoinput.DominoInputMode;
 import org.pentaho.di.ui.core.ConstUI;
 import org.pentaho.di.ui.core.FormDataBuilder;
 import org.pentaho.di.ui.core.dialog.EnterNumberDialog;
@@ -53,18 +55,19 @@ import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.core.widget.TextVarButton;
-import org.pentaho.di.ui.dialog.AbstractStepDialog;
 import org.pentaho.di.ui.trans.dialog.TransPreviewProgressDialog;
 
 /**
  * Dialog for the Domino input step.
  */
+
+@PluginDialog(id = "DominoInput", image = "dominoinput.svg", pluginType = PluginDialog.PluginType.STEP, documentationUrl = "https://help.pentaho.com")
 public class DominoInputDialog extends AbstractStepDialog<DominoInputMeta> {
 
 	 /**
 	   * The package name used for internationalization
 	   */
-	private static Class<?> PKG = DominoInputMeta.class; // for i18n purposes
+	private static final Class<?> PKG = DominoInputMeta.class; // for i18n purposes
 
 	// Widget
 
@@ -241,15 +244,15 @@ public class DominoInputDialog extends AbstractStepDialog<DominoInputMeta> {
 		for (int i = 0; i < fields.length; i++) {
 			DominoField field = fields[i];
 			TableItem item = tblFields.table.getItem(i);
-			item.setText(1, Const.NVL(field.getName(), ""));
-			item.setText(2, Const.NVL(field.getFormula(), ""));
+			item.setText(1, StringUtils.stripToEmpty(field.getName()));
+			item.setText(2, StringUtils.stripToEmpty(field.getFormula()));
 			item.setText(3, ValueMetaBase.getTypeDesc(field.getType()));
 			item.setText(4, String.valueOf(field.getLength()));
 			item.setText(5, String.valueOf(field.getPrecision()));
-			item.setText(6, Const.NVL(field.getFormat(), ""));
-			item.setText(7, Const.NVL(field.getCurrencySymbol(), ""));
-			item.setText(8, Const.NVL(field.getDecimalSymbol(), ""));
-			item.setText(9, Const.NVL(field.getGroupSymbol(), ""));
+			item.setText(6, StringUtils.stripToEmpty(field.getFormat()));
+			item.setText(7, StringUtils.stripToEmpty(field.getCurrencySymbol()));
+			item.setText(8, StringUtils.stripToEmpty(field.getDecimalSymbol()));
+			item.setText(9, StringUtils.stripToEmpty(field.getGroupSymbol()));
 			item.setText(10, field.getTrimTypeDesc());
 		}
 
@@ -482,7 +485,7 @@ public class DominoInputDialog extends AbstractStepDialog<DominoInputMeta> {
 
 		columns[0].setUsingVariables(true);
 		columns[1].setUsingVariables(true);
-
+		
 		tblFields = new TableView(transMeta, wFieldsComposite, SWT.FULL_SELECTION | SWT.MULTI, columns,
 				this.getStepMeta().getDominoFields().length, lsMod, props);
 		tblFields.setLayoutData(new FormDataBuilder().top().left().right(wGet, -Const.MARGIN).bottom().result());
